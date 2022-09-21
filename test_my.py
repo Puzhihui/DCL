@@ -27,18 +27,18 @@ from utils.test_tool import set_text, save_multi_img, cls_base_acc
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
     parser.add_argument('--data', dest='dataset',
-                        default='CUB', type=str)
+                        default='jssi_photo', type=str)
     parser.add_argument('--backbone', dest='backbone',
-                        default='resnet50', type=str)
+                        default='efficientnet-b4', type=str)
     parser.add_argument('--b', dest='batch_size',
                         default=16, type=int)
     parser.add_argument('--nw', dest='num_workers',
-                        default=16, type=int)
+                        default=12, type=int)
     parser.add_argument('--ver', dest='version',
                         default='val', type=str)
     parser.add_argument('--save', dest='resume',
@@ -59,19 +59,22 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
+    resume = args.resume
     print(args)
-    if args.submit:
-        args.version = 'test'
-        if args.save_suffix == '':
-            raise Exception('**** miss --ss save suffix is needed. ')
+    # if args.submit:
+    #     args.version = 'test'
+    #     if args.save_suffix == '':
+    #         raise Exception('**** miss --ss save suffix is needed. ')
 
     Config = LoadConfig(args, args.version)
+    Config.cls_2xmul = True
+    args.acc_report = True
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
     data_set = dataset(Config,\
                        anno=Config.val_anno if args.version == 'val' else Config.test_anno ,\
-                       unswap=transformers["None"],\
                        swap=transformers["None"],\
-                       totensor=transformers['test_totensor'],\
+                       totensor=transformers['adc_val_totensor'],\
+                       # totensor=transformers['adc_val_resize_totensor'],\
                        test=True)
 
     dataloader = torch.utils.data.DataLoader(data_set,\
@@ -91,7 +94,7 @@ if __name__ == '__main__':
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
     model.cuda()
-    model = nn.DataParallel(model)
+    # model = nn.DataParallel(model)
 
     model.train(False)
     with torch.no_grad():
@@ -109,22 +112,25 @@ if __name__ == '__main__':
 
             outputs = model(inputs)
             outputs_pred = outputs[0] + outputs[1][:,0:Config.numcls] + outputs[1][:,Config.numcls:2*Config.numcls]
+            # outputs_pred = outputs[0]
 
-            top3_val, top3_pos = torch.topk(outputs_pred, 3)
+            # top3_val, top3_pos = torch.topk(outputs_pred, 3)
+            top3_val, top3_pos = torch.topk(outputs_pred, 2)
 
-            if args.version == 'val':
+            if args.version == 'val' or args.version == 'test':
                 batch_corrects1 = torch.sum((top3_pos[:, 0] == labels)).data.item()
                 val_corrects1 += batch_corrects1
                 batch_corrects2 = torch.sum((top3_pos[:, 1] == labels)).data.item()
                 val_corrects2 += (batch_corrects2 + batch_corrects1)
-                batch_corrects3 = torch.sum((top3_pos[:, 2] == labels)).data.item()
-                val_corrects3 += (batch_corrects3 + batch_corrects2 + batch_corrects1)
+                # batch_corrects3 = torch.sum((top3_pos[:, 2] == labels)).data.item()
+                # val_corrects3 += (batch_corrects3 + batch_corrects2 + batch_corrects1)
+                val_corrects3 += ( batch_corrects2 + batch_corrects1)
 
             if args.acc_report:
                 for sub_name, sub_cat, sub_val, sub_label in zip(img_name, top3_pos.tolist(), top3_val.tolist(), labels.tolist()):
-                    result_gather[sub_name] = {'top1_cat': sub_cat[0], 'top2_cat': sub_cat[1], 'top3_cat': sub_cat[2],
-                                               'top1_val': sub_val[0], 'top2_val': sub_val[1], 'top3_val': sub_val[2],
-                                               'label': sub_label}
+                    result_gather[sub_name] = {'top1_cat': sub_cat[0], 'top2_cat': sub_cat[1], 'top3_cat': sub_cat[1],
+                                            'top1_val': sub_val[0], 'top2_val': sub_val[1], 'top3_val': sub_val[1],
+                                            'label': sub_label}
     if args.acc_report:
         torch.save(result_gather, 'result_gather_%s'%resume.split('/')[-1][:-4]+ '.pt')
 
@@ -134,18 +140,17 @@ if __name__ == '__main__':
 
         val_acc1 = val_corrects1 / len(data_set)
         val_acc2 = val_corrects2 / len(data_set)
-        val_acc3 = val_corrects3 / len(data_set)
-        print('%sacc1 %f%s\n%sacc2 %f%s\n%sacc3 %f%s\n'%(8*'-', val_acc1, 8*'-', 8*'-', val_acc2, 8*'-', 8*'-',  val_acc3, 8*'-'))
+        # val_acc3 = val_corrects3 / len(data_set)
+        # print('%sacc1 %f%s\n%sacc2 %f%s\n%sacc3 %f%s\n'%(8*'-', val_acc1, 8*'-', 8*'-', val_acc2, 8*'-', 8*'-',  val_acc3, 8*'-'))
+        print('%sacc1 %f%s\n%sacc2 %f%s\n'%(8*'-', val_acc1, 8*'-', 8*'-', val_acc2, 8*'-'))
 
         cls_top1, cls_top3, cls_count = cls_base_acc(result_gather)
 
         acc_report_io = open('acc_report_%s_%s.json'%(args.save_suffix, resume.split('/')[-1]), 'w')
         json.dump({'val_acc1':val_acc1,
-                   'val_acc2':val_acc2,
-                   'val_acc3':val_acc3,
-                   'cls_top1':cls_top1,
-                   'cls_top3':cls_top3,
-                   'cls_count':cls_count}, acc_report_io)
+                'val_acc2':val_acc2,
+                'cls_top1':cls_top1,
+                'cls_count':cls_count}, acc_report_io)
         acc_report_io.close()
 
 

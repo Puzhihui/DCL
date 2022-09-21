@@ -7,6 +7,8 @@ import pandas
 import random
 import PIL.Image as Image
 from PIL import ImageStat
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 import pdb
 
@@ -30,7 +32,8 @@ def random_sample(img_names, labels):
 
 
 class dataset(data.Dataset):
-    def __init__(self, Config, anno, swap_size=[7,7], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False):
+    def __init__(self, Config, anno, swap_size=[7,7], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False,
+                 resize_aug=None, val_resize_totensor=None):
         self.root_path = Config.rawdata_root
         self.numcls = Config.numcls
         self.dataset = Config.dataset
@@ -46,6 +49,8 @@ class dataset(data.Dataset):
         if train_val:
             self.paths, self.labels = random_sample(self.paths, self.labels)
         self.common_aug = common_aug
+        self.resize_aug = resize_aug
+        self.val_resize_totensor = val_resize_totensor
         self.swap = swap
         self.totensor = totensor
         self.cfg = Config
@@ -60,10 +65,23 @@ class dataset(data.Dataset):
         img_path = os.path.join(self.root_path, self.paths[item])
         img = self.pil_loader(img_path)
         if self.test:
-            img = self.totensor(img)
+            # img = self.totensor(img)
+            if self.val_resize_totensor and 'val_resize_aug' in img_path:
+                print('val resize img:', img_path)
+                img = self.val_resize_totensor(img)
+            else:
+                img = self.totensor(img)
+
             label = self.labels[item]
+            # label = int(label)
             return img, label, self.paths[item]
-        img_unswap = self.common_aug(img) if not self.common_aug is None else img
+
+        # img_unswap = self.common_aug(img) if not self.common_aug is None else img
+        if self.train and self.resize_aug and 'train_resize_aug' in img_path:
+            print('train resize img:', img_path)
+            img_unswap = self.resize_aug(img)
+        else:
+            img_unswap = self.common_aug(img) if not self.common_aug is None else img
 
         image_unswap_list = self.crop_image(img_unswap, self.swap_size)
 
@@ -82,6 +100,7 @@ class dataset(data.Dataset):
                 swap_law2.append((index-(swap_range//2))/swap_range)
             img_swap = self.totensor(img_swap)
             label = self.labels[item]
+            # label = int(label)
             if self.use_cls_mul:
                 label_swap = label + self.numcls
             if self.use_cls_2:
@@ -90,6 +109,7 @@ class dataset(data.Dataset):
             return img_unswap, img_swap, label, label_swap, swap_law1, swap_law2, self.paths[item]
         else:
             label = self.labels[item]
+            # label = int(label)
             swap_law2 = [(i-(swap_range//2))/swap_range for i in range(swap_range)]
             label_swap = label
             img_unswap = self.totensor(img_unswap)

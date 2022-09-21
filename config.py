@@ -7,6 +7,7 @@ from utils.autoaugment import ImageNetPolicy
 
 # pretrained model checkpoints
 pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',}
+customize_model = ['efficientnet-b4']
 
 # transforms dict
 def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
@@ -16,29 +17,63 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
        	'swap': transforms.Compose([
             transforms.Randomswap((swap_num[0], swap_num[1])),
         ]),
-        'common_aug': transforms.Compose([
-            transforms.Resize((resize_reso, resize_reso)),
+        'adc_aug': transforms.Compose([
+            transforms.CenterCrop((800, 800)),
+            transforms.RandomVerticalFlip(0.5),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.CenterCrop((600, 600)),
+            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
             transforms.RandomRotation(degrees=15),
-            transforms.RandomCrop((crop_reso,crop_reso)),
-            transforms.RandomHorizontalFlip(),
+            transforms.CenterCrop((crop_reso, crop_reso)),
         ]),
-        'train_totensor': transforms.Compose([
+        'adc_resize_aug': transforms.Compose([
+            transforms.CenterCrop((832, 832)),
+            transforms.RandomVerticalFlip(0.5),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            transforms.RandomRotation(degrees=15),
             transforms.Resize((crop_reso, crop_reso)),
-            # ImageNetPolicy(),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        'val_totensor': transforms.Compose([
-            transforms.Resize((crop_reso, crop_reso)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]),
-        'test_totensor': transforms.Compose([
-            transforms.Resize((resize_reso, resize_reso)),
+        'adc_train_totensor': transforms.Compose([
             transforms.CenterCrop((crop_reso, crop_reso)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
+        'adc_val_totensor': transforms.Compose([
+            transforms.CenterCrop((crop_reso, crop_reso)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]),
+        'adc_val_resize_totensor': transforms.Compose([
+            transforms.CenterCrop((832, 832)),
+            transforms.Resize((crop_reso, crop_reso)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]),
+
+        # 'common_aug': transforms.Compose([
+        #     transforms.Resize((resize_reso, resize_reso)),
+        #     transforms.RandomRotation(degrees=15),
+        #     transforms.RandomCrop((crop_reso, crop_reso)),
+        #     transforms.RandomHorizontalFlip(),
+        # ]),
+        # 'train_totensor': transforms.Compose([
+        #     transforms.Resize((crop_reso, crop_reso)),
+        #     # ImageNetPolicy(),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        # ]),
+        # 'val_totensor': transforms.Compose([
+        #     transforms.Resize((crop_reso, crop_reso)),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        # ]),
+        # 'test_totensor': transforms.Compose([
+        #     transforms.Resize((resize_reso, resize_reso)),
+        #     transforms.CenterCrop((crop_reso, crop_reso)),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        # ]),
         'None': None,
     }
     return data_transforms
@@ -62,26 +97,16 @@ class LoadConfig(object):
         # put image data in $PATH/data
         # put annotation txt file in $PATH/anno
 
-        if args.dataset == 'product':
+        if args.dataset == 'jssi_aoi':
             self.dataset = args.dataset
-            self.rawdata_root = './../FGVC_product/data'
-            self.anno_root = './../FGVC_product/anno'
-            self.numcls = 2019
-        elif args.dataset == 'CUB':
+            self.rawdata_root = '/data3/leif/data/jssi/aoi'
+            self.anno_root = './datasets/jssi_aoi'
+            self.numcls = 2
+        elif args.dataset == 'jssi_photo':
             self.dataset = args.dataset
-            self.rawdata_root = './dataset/CUB_200_2011/data'
-            self.anno_root = './dataset/CUB_200_2011/anno'
-            self.numcls = 200
-        elif args.dataset == 'STCAR':
-            self.dataset = args.dataset
-            self.rawdata_root = './dataset/st_car/data'
-            self.anno_root = './dataset/st_car/anno'
-            self.numcls = 196
-        elif args.dataset == 'AIR':
-            self.dataset = args.dataset
-            self.rawdata_root = './dataset/aircraft/data'
-            self.anno_root = './dataset/aircraft/anno'
-            self.numcls = 100
+            self.rawdata_root = '/data3/leif/data/jssi/photo'
+            self.anno_root = './datasets/jssi_photo'
+            self.numcls = 2
         else:
             raise Exception('dataset not defined ???')
 
@@ -89,22 +114,25 @@ class LoadConfig(object):
         # path/image_name cls_num\n
 
         if 'train' in get_list:
-             self.train_anno = pd.read_csv(os.path.join(self.anno_root, 'ct_train.txt'),\
-                                           sep=" ",\
+             self.train_anno = pd.read_csv(os.path.join(self.anno_root, 'train.txt'),\
+                                           sep=", ",\
                                            header=None,\
-                                           names=['ImageName', 'label'])
+                                           names=['ImageName', 'label'],
+                                           engine='python')
 
         if 'val' in get_list:
-            self.val_anno = pd.read_csv(os.path.join(self.anno_root, 'ct_val.txt'),\
-                                           sep=" ",\
+            self.val_anno = pd.read_csv(os.path.join(self.anno_root, 'val.txt'),\
+                                           sep=", ",\
                                            header=None,\
-                                           names=['ImageName', 'label'])
+                                           names=['ImageName', 'label'],
+                                           engine='python')
 
         if 'test' in get_list:
-            self.test_anno = pd.read_csv(os.path.join(self.anno_root, 'ct_test.txt'),\
-                                           sep=" ",\
+            self.test_anno = pd.read_csv(os.path.join(self.anno_root, 'test.txt'),\
+                                           sep=", ",\
                                            header=None,\
-                                           names=['ImageName', 'label'])
+                                           names=['ImageName', 'label'],
+                                           engine='python')
 
         self.swap_num = args.swap_num
 
