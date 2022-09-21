@@ -87,6 +87,7 @@ def train(Config,
             else:
                 outputs = model(inputs, None)
 
+            # labels = labels.type(torch.int64)
             if Config.use_focal_loss:
                 ce_loss = get_focal_loss(outputs[0], labels)
             else:
@@ -105,6 +106,7 @@ def train(Config,
             alpha_ = 1
             beta_ = 1
             gamma_ = 0.01 if Config.dataset == 'STCAR' or Config.dataset == 'AIR' else 1
+            # labels_swap = labels_swap.type(torch.int64)
             if Config.use_dcl:
                 swap_loss = get_ce_loss(outputs[1], labels_swap) * beta_
                 loss += swap_loss

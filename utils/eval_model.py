@@ -54,7 +54,8 @@ def eval_turn(Config, model, data_loader, val_version, epoch_num, log_file):
                 outputs_pred = outputs[0] + outputs[1][:,0:num_cls] + outputs[1][:,num_cls:2*num_cls]
             else:
                 outputs_pred = outputs[0]
-            top3_val, top3_pos = torch.topk(outputs_pred, 3)
+            # top3_val, top3_pos = torch.topk(outputs_pred, 3)
+            top3_val, top3_pos = torch.topk(outputs_pred, 2)
 
             print('{:s} eval_batch: {:-6d} / {:d} loss: {:8.4f}'.format(val_version, batch_cnt_val, val_epoch_step, loss), flush=True)
 
@@ -62,7 +63,8 @@ def eval_turn(Config, model, data_loader, val_version, epoch_num, log_file):
             val_corrects1 += batch_corrects1
             batch_corrects2 = torch.sum((top3_pos[:, 1] == labels)).data.item()
             val_corrects2 += (batch_corrects2 + batch_corrects1)
-            batch_corrects3 = torch.sum((top3_pos[:, 2] == labels)).data.item()
+            # batch_corrects3 = torch.sum((top3_pos[:, 2] == labels)).data.item()
+            batch_corrects3 = torch.sum((top3_pos[:, 1] == labels)).data.item()
             val_corrects3 += (batch_corrects3 + batch_corrects2 + batch_corrects1)
 
         val_acc1 = val_corrects1 / item_count
@@ -74,7 +76,8 @@ def eval_turn(Config, model, data_loader, val_version, epoch_num, log_file):
         t1 = time.time()
         since = t1-t0
         print('--'*30, flush=True)
-        print('% 3d %s %s %s-loss: %.4f ||%s-acc@1: %.4f %s-acc@2: %.4f %s-acc@3: %.4f ||time: %d' % (epoch_num, val_version, dt(), val_version, val_loss_recorder.get_val(init=True), val_version, val_acc1,val_version, val_acc2, val_version, val_acc3, since), flush=True)
+        val_str = '% 3d %s %s %s-loss: %.4f ||%s-acc@1: %.4f %s-acc@2: %.4f %s-acc@3: %.4f ||time: %d' % (epoch_num, val_version, dt(), val_version, val_loss_recorder.get_val(init=True), val_version, val_acc1, val_version, val_acc2, val_version, val_acc3, since)
+        print(val_str, flush=True)
         print('--' * 30, flush=True)
 
     return val_acc1, val_acc2, val_acc3
