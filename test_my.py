@@ -27,8 +27,9 @@ from utils.test_tool import set_text, save_multi_img, cls_base_acc
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
+# python test_my.py --data jssi_photo --use_center --use_resize  --test_txt ./test.txt --save ./model.pth
 
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
@@ -36,10 +37,16 @@ def parse_args():
                         default='jssi_photo', type=str)
     parser.add_argument('--backbone', dest='backbone',
                         default='efficientnet-b4', type=str)
+    parser.add_argument('--test_txt', dest='test_txt',
+                        default='', type=str)
+    parser.add_argument('--use_center', dest='use_center',
+                        default=False,  action='store_true')
+    parser.add_argument('--use_resize', dest='use_resize',
+                        default=False,  action='store_true')
     parser.add_argument('--b', dest='batch_size',
-                        default=4, type=int)
+                        default=64, type=int)
     parser.add_argument('--nw', dest='num_workers',
-                        default=2, type=int)
+                        default=12, type=int)
     parser.add_argument('--ver', dest='version',
                         default='val', type=str)
     parser.add_argument('--save', dest='resume',
@@ -72,8 +79,10 @@ def main():
     Config.cls_2xmul = True
     args.acc_report = True
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
+    test_anno = pd.read_csv(args.test_txt, sep=", ", header=None, names=['ImageName', 'label'], engine='python')
     data_set = dataset(Config, \
-                       anno=Config.val_anno if args.version == 'val' else Config.test_anno, \
+                       # anno=Config.val_anno if args.version == 'val' else Config.test_anno, \
+                       anno=test_anno, \
                        swap=transformers["None"], \
                        # totensor=transformers['adc_val_totensor'],\
                        totensor=transformers['adc_val_resize_totensor'], \
@@ -157,8 +166,10 @@ def main():
         acc_report_io.close()
 
 
-def main_CenterAndResize(use_center, use_resize):
+def main_CenterAndResize():
     args = parse_args()
+    use_center = args.use_center
+    use_resize = args.use_resize
     resume = args.resume
     print(args)
     # if args.submit:
@@ -170,13 +181,15 @@ def main_CenterAndResize(use_center, use_resize):
     Config.cls_2xmul = True
     args.acc_report = True
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
+    test_anno = pd.read_csv(args.test_txt, sep=", ", header=None, names=['ImageName', 'label'], engine='python')
     data_set_center = dataset(Config, \
-                       anno=Config.val_anno if args.version == 'val' else Config.test_anno, \
+                       # anno=Config.val_anno if args.version == 'val' else Config.test_anno, \
+                       anno=test_anno, \
                        swap=transformers["None"], \
                        totensor=transformers['adc_val_totensor'],\
                        test=True)
     data_set_resize = dataset(Config, \
-                       anno=Config.val_anno if args.version == 'val' else Config.test_anno, \
+                       anno=test_anno, \
                        swap=transformers["None"], \
                        totensor=transformers['adc_val_resize_totensor'], \
                        test=True)
@@ -229,11 +242,6 @@ def main_CenterAndResize(use_center, use_resize):
                 if args.version == 'val' or args.version == 'test':
                     batch_corrects1_result_center = (top3_pos_center[:, 0] == labels_center).cpu().numpy().tolist()
                     batch_corrects2_result_center = (top3_pos_center[:, 1] == labels_center).cpu().numpy().tolist()
-                    # print(batch_corrects1_result)
-                    # batch_corrects1 = torch.sum((top3_pos[:, 0] == labels)).data.item()
-                    # val_corrects1 += batch_corrects1
-                    # batch_corrects2 = torch.sum((top3_pos[:, 1] == labels)).data.item()
-                    # val_corrects2 += (batch_corrects2 + batch_corrects1)
             else:
                 batch_corrects1_result_center, batch_corrects2_result_center = None, None
 
@@ -300,17 +308,17 @@ def main_CenterAndResize(use_center, use_resize):
 
         cls_top1, cls_top3, cls_count = cls_base_acc(result_gather)
 
-        acc_report_io = open('acc_report_%s_%s.json' % (args.save_suffix, resume.split('/')[-1]), 'w')
-        json.dump({'val_acc1': val_acc1,
-                   'val_acc2': val_acc2,
-                   'cls_top1': cls_top1,
-                   'cls_count': cls_count}, acc_report_io)
-        acc_report_io.close()
+        # acc_report_io = open('acc_report_%s_%s.json' % (args.save_suffix, resume.split('/')[-1]), 'w')
+        # json.dump({'val_acc1': val_acc1,
+        #            'val_acc2': val_acc2,
+        #            'cls_top1': cls_top1,
+        #            'cls_count': cls_count}, acc_report_io)
+        # acc_report_io.close()
 
 
 if __name__ == '__main__':
     # main()
-    main_CenterAndResize(use_center=True, use_resize=True)
+    main_CenterAndResize()
 
 
 
