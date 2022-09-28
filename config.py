@@ -50,30 +50,6 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-
-        # 'common_aug': transforms.Compose([
-        #     transforms.Resize((resize_reso, resize_reso)),
-        #     transforms.RandomRotation(degrees=15),
-        #     transforms.RandomCrop((crop_reso, crop_reso)),
-        #     transforms.RandomHorizontalFlip(),
-        # ]),
-        # 'train_totensor': transforms.Compose([
-        #     transforms.Resize((crop_reso, crop_reso)),
-        #     # ImageNetPolicy(),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        # ]),
-        # 'val_totensor': transforms.Compose([
-        #     transforms.Resize((crop_reso, crop_reso)),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        # ]),
-        # 'test_totensor': transforms.Compose([
-        #     transforms.Resize((resize_reso, resize_reso)),
-        #     transforms.CenterCrop((crop_reso, crop_reso)),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        # ]),
         'None': None,
     }
     return data_transforms
@@ -102,10 +78,20 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/leif/data/jssi/aoi'
             self.anno_root = './datasets/jssi_aoi'
             self.numcls = 2
-        elif args.dataset == 'jssi_photo':
+        elif args.dataset == 'jssi_photo_center':
             self.dataset = args.dataset
             self.rawdata_root = '/data3/leif/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo'
+            self.anno_root = './datasets/jssi_photo_center'
+            self.numcls = 2
+        elif args.dataset == 'jssi_photo_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/leif/data/jssi/photo'
+            self.anno_root = './datasets/jssi_photo_resize'
+            self.numcls = 2
+        elif args.dataset == 'jssi_photo_center_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/leif/data/jssi/photo'
+            self.anno_root = './datasets/jssi_photo_center_resize'
             self.numcls = 2
         else:
             raise Exception('dataset not defined ???')
