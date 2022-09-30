@@ -23,7 +23,9 @@ from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test,
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2,3'
+
+# nohup python auto_train_jssi.py --data jssi_photo_center_resize --hard_train --backbone efficientnet-b4 --epoch 50 --save ./net_model/dcl_2_photo.pth >nohup_photo_center_resize.log 2>&1 &
 
 # parameters setting
 def parse_args():

@@ -67,7 +67,7 @@ class dataset(data.Dataset):
         if self.test:
             # img = self.totensor(img)
             if self.val_resize_totensor and 'val_resize_aug' in img_path:
-                print('val resize img:', img_path)
+                # print('val resize img:', img_path)
                 img = self.val_resize_totensor(img)
             else:
                 img = self.totensor(img)
