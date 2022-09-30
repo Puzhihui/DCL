@@ -78,7 +78,7 @@ class dataset(data.Dataset):
 
         # img_unswap = self.common_aug(img) if not self.common_aug is None else img
         if self.train and self.resize_aug and 'train_resize_aug' in img_path:
-            print('train resize img:', img_path)
+            # print('train resize img:', img_path)
             img_unswap = self.resize_aug(img)
         else:
             img_unswap = self.common_aug(img) if not self.common_aug is None else img

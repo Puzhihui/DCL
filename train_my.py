@@ -25,7 +25,7 @@ import pdb
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2,3'
 
-# nohup python auto_train_jssi.py --data jssi_photo_center_resize --hard_train --backbone efficientnet-b4 --epoch 50 --save ./net_model/dcl_2_photo.pth >nohup_photo_center_resize.log 2>&1 &
+# nohup python train_my.py --data jssi_photo --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth >nohup.log 2>&1 &
 
 # parameters setting
 def parse_args():
