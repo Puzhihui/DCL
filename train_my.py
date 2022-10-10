@@ -25,7 +25,7 @@ import pdb
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2,3'
 
-# nohup python train_my.py --data jssi_photo --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth >nohup.log 2>&1 &
+# nohup python train_my.py --data jssi_photo --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 
 # parameters setting
 def parse_args():
@@ -33,8 +33,9 @@ def parse_args():
     parser.add_argument('--data', dest='dataset',
                         default='CUB', type=str)
     parser.add_argument('--save', dest='resume',
-                        default=None,
-                        type=str)
+                        default=None, type=str)
+    parser.add_argument('--save_dir', dest='save_dir',
+                        default='./net_model', type=str)
     parser.add_argument('--backbone', dest='backbone',
                         default='resnet50', type=str)
     parser.add_argument('--auto_resume', dest='auto_resume',
@@ -42,9 +43,9 @@ def parse_args():
     parser.add_argument('--epoch', dest='epoch',
                         default=360, type=int)
     parser.add_argument('--tb', dest='train_batch',
-                        default=16, type=int)
-    parser.add_argument('--vb', dest='val_batch',
                         default=32, type=int)
+    parser.add_argument('--vb', dest='val_batch',
+                        default=64, type=int)
     parser.add_argument('--sp', dest='save_point',
                         default=5000, type=int)
     parser.add_argument('--cp', dest='check_point',
@@ -92,6 +93,8 @@ if __name__ == '__main__':
     args = parse_args()
     print(args, flush=True)
     Config = LoadConfig(args, 'train')
+    Config.save_dir = args.save_dir
+    os.makedirs(Config.save_dir, exist_ok=True)
     Config.cls_2 = args.cls_2
     Config.cls_2xmul = args.cls_mul
     assert Config.cls_2 ^ Config.cls_2xmul

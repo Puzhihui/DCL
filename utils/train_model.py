@@ -58,6 +58,7 @@ def train(Config,
     get_focal_loss = FocalLoss()
     get_angle_loss = AngleLoss()
 
+    val_best_acc, val_best_epoch = -1, -1
     for epoch in range(start_epoch,epoch_num-1):
         exp_lr_scheduler.step(epoch)
         model.train(True)
@@ -140,10 +141,18 @@ def train(Config,
 
                 val_acc1, val_acc2, val_acc3 = eval_turn(Config, model, data_loader['val'], 'val', epoch, log_file)
 
-                save_path = os.path.join(save_dir, 'weights_%d_%d_%.4f_%.4f.pth'%(epoch, batch_cnt, val_acc1, val_acc3))
+                save_path = os.path.join(save_dir, 'weights_%d_%d_%.4f.pth' % (epoch, batch_cnt, val_acc1))
                 torch.cuda.synchronize()
                 torch.save(model.state_dict(), save_path)
-                print('saved model to %s' % (save_path), flush=True)
+                if val_acc1 > val_best_acc:
+                    val_best_acc = val_acc1
+                    val_best_epoch = epoch
+                    best_save_path = os.path.join(save_dir, 'best_weights_%d_%d_%.4f.pth' % (val_best_epoch, batch_cnt,
+                                                                                             val_best_acc))
+                    torch.save(model.state_dict(), best_save_path)
+                    print("save best model to {}".format(best_save_path))
+                print('saved model to {}, best_epoch:{}, best_acc:{}'.format(save_path, val_best_epoch, val_best_acc),
+                      flush=True)
                 torch.cuda.empty_cache()
 
             # save only
