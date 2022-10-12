@@ -93,6 +93,21 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/leif/data/jssi/photo'
             self.anno_root = './datasets/jssi_photo_center_resize'
             self.numcls = 2
+        elif args.dataset == 'ht_less500_center_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data4/exp_data/'
+            self.anno_root = './datasets/ht_less500_center_resize'
+            self.numcls = 2
+        elif args.dataset == 'ht_more500_center_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data4/exp_data/'
+            self.anno_root = './datasets/ht_more500_center_resize'
+            self.numcls = 2
+        elif args.dataset == 'smic_om_3':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/smic/smic_om_3'
+            self.anno_root = './datasets/smic_om_3'
+            self.numcls = 3
         else:
             raise Exception('dataset not defined ???')
 
