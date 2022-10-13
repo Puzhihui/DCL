@@ -25,7 +25,7 @@ import pdb
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2,3'
 
-# nohup python train_my.py --data jssi_photo --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
+# nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 
 # parameters setting
 def parse_args():
@@ -102,7 +102,8 @@ if __name__ == '__main__':
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
 
     # inital dataloader
-    train_set = dataset(Config = Config,\
+    train_set = dataset(Config = Config, \
+                        swap_size=args.swap_num,\
                         anno = Config.train_anno,\
                         common_aug = transformers["adc_aug"],\
                         resize_aug = transformers["adc_resize_aug"],\
@@ -110,7 +111,8 @@ if __name__ == '__main__':
                         totensor = transformers["adc_train_totensor"],\
                         train = True)
 
-    trainval_set = dataset(Config = Config,\
+    trainval_set = dataset(Config = Config, \
+                        swap_size=args.swap_num, \
                         anno = Config.train_anno,\
                         common_aug = transformers["None"],\
                         swap = transformers["None"],\
@@ -118,7 +120,8 @@ if __name__ == '__main__':
                         train = False,
                         train_val = True)
 
-    val_set = dataset(Config = Config,\
+    val_set = dataset(Config = Config, \
+                      swap_size=args.swap_num, \
                       anno = Config.val_anno,\
                       common_aug = transformers["None"],\
                       swap = transformers["None"],\
