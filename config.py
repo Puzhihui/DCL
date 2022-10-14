@@ -34,6 +34,20 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             transforms.RandomRotation(degrees=15),
             transforms.Resize((crop_reso, crop_reso)),
         ]),
+        'adc_oi_center_aug': transforms.Compose([
+            transforms.RandomVerticalFlip(0.5),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            transforms.RandomRotation(degrees=15),
+            transforms.CenterCrop((crop_reso, crop_reso)),
+        ]),
+        'adc_oi_resize_aug': transforms.Compose([
+            transforms.RandomVerticalFlip(0.5),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            transforms.RandomRotation(degrees=15),
+            transforms.Resize((crop_reso, crop_reso)),
+        ]),
         'adc_train_totensor': transforms.Compose([
             transforms.CenterCrop((crop_reso, crop_reso)),
             transforms.ToTensor(),
@@ -75,22 +89,22 @@ class LoadConfig(object):
 
         if args.dataset == 'jssi_aoi':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/leif/data/jssi/aoi'
+            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
             self.anno_root = './datasets/jssi_aoi'
             self.numcls = 2
         elif args.dataset == 'jssi_photo_center':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/leif/data/jssi/photo'
+            self.rawdata_root = '/data3/pzh/data/jssi/photo'
             self.anno_root = './datasets/jssi_photo_center'
             self.numcls = 2
         elif args.dataset == 'jssi_photo_resize':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/leif/data/jssi/photo'
+            self.rawdata_root = '/data3/pzh/data/jssi/photo'
             self.anno_root = './datasets/jssi_photo_resize'
             self.numcls = 2
         elif args.dataset == 'jssi_photo_center_resize':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/leif/data/jssi/photo'
+            self.rawdata_root = '/data3/pzh/data/jssi/photo'
             self.anno_root = './datasets/jssi_photo_center_resize'
             self.numcls = 2
         elif args.dataset == 'ht_less500_center_resize':
@@ -105,7 +119,7 @@ class LoadConfig(object):
             self.numcls = 2
         elif args.dataset == 'smic_om_3':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/smic/smic_om_3'
+            self.rawdata_root = r'D:\Solution\datas\smic_om_3'
             self.anno_root = './datasets/smic_om_3'
             self.numcls = 3
         else:

@@ -23,15 +23,30 @@ from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test,
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2,3'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '2,3'
 
-# nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
+# ========================================================日志模块========================================================
+def get_str_datetime():
+    return str(datetime.datetime.now().year) + '_' + str(datetime.datetime.now().month) + '_' + str(
+        datetime.datetime.now().day) + '_' + str(datetime.datetime.now().hour)
+from logserver import LogServer
+global log_server
+# log_server = LogServer(app='adc-dcl-train', log_path=r"D:\Solution\log")
+log_server = LogServer(app='adc-dcl-train', log_path=r"./log")
+filename = get_str_datetime()
+log_server.re_configure_logging('adc-dcl-train' + str(filename) + "_log.txt")
+print("logfile is: ", str(filename) + "_log.txt")
+log_server.logging("logfile is %s" % (str(filename) + "_log.txt"))
+print("**********load log config file success*******************")
+# ========================================================日志模块========================================================
+
+# nohup python train_smic.py --tb 32 >nohup.log 2>&1 &
 
 # parameters setting
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
     parser.add_argument('--data', dest='dataset',
-                        default='CUB', type=str)
+                        default='smic_om_3', type=str)
     parser.add_argument('--save', dest='resume',
                         default=None, type=str)
     parser.add_argument('--save_dir', dest='save_dir',
@@ -41,9 +56,9 @@ def parse_args():
     parser.add_argument('--auto_resume', dest='auto_resume',
                         action='store_true')
     parser.add_argument('--epoch', dest='epoch',
-                        default=360, type=int)
+                        default=100, type=int)
     parser.add_argument('--tb', dest='train_batch',
-                        default=32, type=int)
+                        default=16, type=int)
     parser.add_argument('--vb', dest='val_batch',
                         default=64, type=int)
     parser.add_argument('--sp', dest='save_point',
@@ -59,20 +74,20 @@ def parse_args():
     parser.add_argument('--start_epoch', dest='start_epoch',
                         default=0,  type=int)
     parser.add_argument('--tnw', dest='train_num_workers',
-                        default=12, type=int)
+                        default=4, type=int)
     parser.add_argument('--vnw', dest='val_num_workers',
-                        default=12, type=int)
+                        default=4, type=int)
     parser.add_argument('--detail', dest='discribe',
-                        default='', type=str)
+                        default='train', type=str)
     parser.add_argument('--size', dest='resize_resolution',
                         default=512, type=int)
     parser.add_argument('--crop', dest='crop_resolution',
-                        default=448, type=int)
+                        default=352, type=int)
     parser.add_argument('--cls_2', dest='cls_2',
                         action='store_true')
     parser.add_argument('--cls_mul', dest='cls_mul',
                         default=True, action='store_true')
-    parser.add_argument('--swap_num', default=[7, 7],
+    parser.add_argument('--swap_num', default=[5, 5],
                     nargs=2, metavar=('swap1', 'swap2'),
                     type=int, help='specify a range')
     args = parser.parse_args()
@@ -92,6 +107,7 @@ def auto_load_resume(load_dir):
 if __name__ == '__main__':
     args = parse_args()
     print(args, flush=True)
+    _ = log_server.logging("{}".format(args)) if log_server else 1
     Config = LoadConfig(args, 'train')
     Config.save_dir = args.save_dir
     os.makedirs(Config.save_dir, exist_ok=True)
@@ -105,7 +121,8 @@ if __name__ == '__main__':
     train_set = dataset(Config = Config, \
                         swap_size=args.swap_num,\
                         anno = Config.train_anno,\
-                        common_aug = transformers["adc_aug"],\
+                        # common_aug = transformers["adc_aug"],\
+                        common_aug = transformers["adc_oi_center_aug"],\
                         resize_aug = transformers["adc_resize_aug"],\
                         swap = transformers["swap"],\
                         totensor = transformers["adc_train_totensor"],\
@@ -167,18 +184,22 @@ if __name__ == '__main__':
     cudnn.benchmark = True
 
     print('Choose model and train set', flush=True)
+    _ = log_server.logging("Choose model and train set") if log_server else 1
     model = MainModel(Config)
 
     # load model
     if (args.resume is None) and (not args.auto_resume):
         print('train from imagenet pretrained models ...', flush=True)
+        _ = log_server.logging("train from imagenet pretrained models ...") if log_server else 1
     else:
         if not args.resume is None:
             resume = args.resume
             print('load from pretrained checkpoint %s ...'% resume, flush=True)
+            _ = log_server.logging('load from pretrained checkpoint %s ...'% resume) if log_server else 1
         elif args.auto_resume:
             resume = auto_load_resume(Config.save_dir)
             print('load from %s ...'%resume, flush=True)
+            _ = log_server.logging('load from %s ...'%resume) if log_server else 1
         else:
             raise Exception("no checkpoints to load")
 
@@ -189,6 +210,7 @@ if __name__ == '__main__':
         model.load_state_dict(model_dict)
 
     print('Set cache dir', flush=True)
+    _ = log_server.logging("Set cache dir") if log_server else 1
     time = datetime.datetime.now()
     filename = '%s_%d%d%d_%s'%(args.discribe, time.month, time.day, time.hour, Config.dataset)
     save_dir = os.path.join(Config.save_dir, filename)
@@ -208,6 +230,7 @@ if __name__ == '__main__':
 
         ignored_params = ignored_params1 + ignored_params2 + ignored_params3
     print('the num of new layers:', len(ignored_params), flush=True)
+    _ = log_server.logging("the num of new layers:{}".format(len(ignored_params))) if log_server else 1
     base_params = filter(lambda p: id(p) not in ignored_params, model.module.parameters())
 
     lr_ratio = args.cls_lr_ratio
@@ -236,6 +259,7 @@ if __name__ == '__main__':
           save_dir=save_dir,
           data_size=args.crop_resolution,
           savepoint=args.save_point,
-          checkpoint=args.check_point)
+          checkpoint=args.check_point,
+          log_server=log_server)
 
 

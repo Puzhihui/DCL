@@ -32,7 +32,8 @@ def train(Config,
           save_dir,
           data_size=448,
           savepoint=500,
-          checkpoint=1000
+          checkpoint=1000,
+          log_server=None
           ):
     # savepoint: save without evalution
     # checkpoint: save with evaluation
@@ -121,9 +122,13 @@ def train(Config,
             torch.cuda.synchronize()
 
             if Config.use_dcl:
-                print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), law_loss.detach().item()), flush=True)
+                print_string_1 = 'step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), law_loss.detach().item())
+                print(print_string_1, flush=True)
+                _ = log_server.logging(print_string_1) if log_server else 1
             if Config.use_backbone:
-                print('step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item()), flush=True)
+                print_string_2 = 'step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item())
+                print(print_string_2, flush=True)
+                _ = log_server.logging(print_string_2) if log_server else 1
             rec_loss.append(loss.detach().item())
 
             train_loss_recorder.update(loss.detach().item())
@@ -132,8 +137,12 @@ def train(Config,
             if step % checkpoint == 0:
                 rec_loss = []
                 print(32*'-', flush=True)
-                print('step: {:d} / {:d} global_step: {:8.2f} train_epoch: {:04d} rec_train_loss: {:6.4f}'.format(step, train_epoch_step, 1.0*step/train_epoch_step, epoch, train_loss_recorder.get_val()), flush=True)
+                _ = log_server.logging(32*'-') if log_server else 1
+                print_string_3 = 'step: {:d} / {:d} global_step: {:8.2f} train_epoch: {:04d} rec_train_loss: {:6.4f}'.format(step, train_epoch_step, 1.0*step/train_epoch_step, epoch, train_loss_recorder.get_val())
+                print(print_string_3, flush=True)
+                _ = log_server.logging(print_string_3) if log_server else 1
                 print('current lr:%s' % exp_lr_scheduler.get_lr(), flush=True)
+                _ = log_server.logging('current lr:%s' % exp_lr_scheduler.get_lr()) if log_server else 1
                 if eval_train_flag:
                     trainval_acc1, trainval_acc2, trainval_acc3 = eval_turn(Config, model, data_loader['trainval'], 'trainval', epoch, log_file)
                     if abs(trainval_acc1 - trainval_acc3) < 0.01:
@@ -147,12 +156,16 @@ def train(Config,
                 if val_acc1 > val_best_acc:
                     val_best_acc = val_acc1
                     val_best_epoch = epoch
-                    best_save_path = os.path.join(save_dir, 'best_weights_%d_%d_%.4f.pth' % (val_best_epoch, batch_cnt,
-                                                                                             val_best_acc))
-                    torch.save(model.state_dict(), best_save_path)
-                    print("save best model to {}".format(best_save_path))
-                print('saved model to {}, best_epoch:{}, best_acc:{}'.format(save_path, val_best_epoch, val_best_acc),
-                      flush=True)
+                    best_weight_save_path = os.path.join(save_dir, 'best_weights_%d_%d_%.4f.pth' % (val_best_epoch, batch_cnt, val_best_acc))
+                    torch.save(model.state_dict(), best_weight_save_path)
+                    best_model_save_path = os.path.join(save_dir, 'best_model.pth')
+                    torch.save(model.state_dict(), best_model_save_path)
+                    print_string_4 = "save best weight to {} and {}".format(best_weight_save_path, best_model_save_path)
+                    print(print_string_4)
+                    _ = log_server.logging(print_string_4) if log_server else 1
+                print_string_5 = 'saved model to {}, best_epoch:{}, best_acc:{}'.format(save_path, val_best_epoch, val_best_acc)
+                print(print_string_5, flush=True)
+                _ = log_server.logging(print_string_5) if log_server else 1
                 torch.cuda.empty_cache()
 
             # save only
