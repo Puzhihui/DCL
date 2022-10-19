@@ -119,7 +119,7 @@ class LoadConfig(object):
             self.numcls = 2
         elif args.dataset == 'smic_om_3':
             self.dataset = args.dataset
-            self.rawdata_root = r'D:\Solution\datas\smic_om_3'
+            self.rawdata_root = r'D:\Solution\datas\smic_om_3' # /data3/pzh/data/smic/smic_om_3
             self.anno_root = './datasets/smic_om_3'
             self.numcls = 3
         else:

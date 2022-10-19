@@ -78,8 +78,18 @@ def train(Config,
                 inputs, labels, labels_swap, swap_law, img_names = data
 
                 inputs = Variable(inputs.cuda())
-                labels = Variable(torch.from_numpy(np.array(labels)).cuda())
-                labels_swap = Variable(torch.from_numpy(np.array(labels_swap)).cuda())
+                # labels = Variable(torch.from_numpy(np.array(labels)).cuda())
+                # labels_swap = Variable(torch.from_numpy(np.array(labels_swap)).cuda())
+                # 有些pytorch版本生成的labels和labels_swap是int32类型的，需要转换到int64
+                labels = torch.from_numpy(np.array(labels))
+                if labels.dtype != torch.int64:
+                    labels = labels.type(torch.long)
+                labels = Variable(labels.cuda())
+                labels_swap = torch.from_numpy(np.array(labels_swap))
+                if labels_swap.dtype != torch.int64:
+                    labels_swap = labels_swap.type(torch.long)
+                labels_swap = Variable(labels_swap.cuda())
+
                 swap_law = Variable(torch.from_numpy(np.array(swap_law)).float().cuda())
 
             optimizer.zero_grad()
