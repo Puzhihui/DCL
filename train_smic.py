@@ -4,6 +4,7 @@ import datetime
 import argparse
 import logging
 import pandas as pd
+import platform
 
 import torch
 import torch.nn as nn
@@ -19,6 +20,7 @@ from utils.train_model import train
 from models.LoadModel import MainModel
 from config import LoadConfig, load_data_transformers
 from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test, collate_fn4backbone, dataset
+from logserver import LogServer
 
 import pdb
 
@@ -29,16 +31,6 @@ os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 def get_str_datetime():
     return str(datetime.datetime.now().year) + '_' + str(datetime.datetime.now().month) + '_' + str(
         datetime.datetime.now().day) + '_' + str(datetime.datetime.now().hour)
-from logserver import LogServer
-global log_server
-# log_server = LogServer(app='adc-dcl-train', log_path=r"D:\Solution\log")
-log_server = LogServer(app='adc-dcl-train', log_path=r"./log")
-filename = get_str_datetime()
-log_server.re_configure_logging('adc-dcl-train' + str(filename) + "_log.txt")
-print("logfile is: ", str(filename) + "_log.txt")
-log_server.logging("logfile is %s" % (str(filename) + "_log.txt"))
-print("**********load log config file success*******************")
-# ========================================================日志模块========================================================
 
 # nohup python train_smic.py --tb 32 >nohup.log 2>&1 &
 
@@ -60,7 +52,7 @@ def parse_args():
     parser.add_argument('--tb', dest='train_batch',
                         default=16, type=int)
     parser.add_argument('--vb', dest='val_batch',
-                        default=64, type=int)
+                        default=16, type=int)
     parser.add_argument('--sp', dest='save_point',
                         default=5000, type=int)
     parser.add_argument('--cp', dest='check_point',
@@ -105,6 +97,22 @@ def auto_load_resume(load_dir):
 
 
 if __name__ == '__main__':
+    # ========================================================日志模块========================================================
+    log_path = r"D:\Solution\log\train_model" if platform.system().lower() == 'windows' else './logs'
+    os.makedirs(log_path, exist_ok=True)
+    log_server = LogServer(app='adc-dcl-train', log_path=log_path)
+    filename = get_str_datetime()
+    log_server.re_configure_logging('adc-dcl-train' + str(filename) + "_log.txt")
+    print("logfile is: ", str(filename) + "_log.txt")
+    log_server.logging("logfile is %s" % (str(filename) + "_log.txt"))
+    print("**********load log config file success*******************")
+    # ========================================================日志模块========================================================
+
+    log_server.logging("torch num threads:{}".format(torch.get_num_threads()))
+    set_torch_threads = 2 if torch.get_num_threads() > 2 else torch.get_num_threads()
+    torch.set_num_threads(set_torch_threads)
+    log_server.logging("set_torch_threads: {}, now torch num threads:{}".format(set_torch_threads, torch.get_num_threads()))
+
     args = parse_args()
     print(args, flush=True)
     _ = log_server.logging("{}".format(args)) if log_server else 1
