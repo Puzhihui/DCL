@@ -17,7 +17,7 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
        	'swap': transforms.Compose([
             transforms.Randomswap((swap_num[0], swap_num[1])),
         ]),
-        'adc_aug': transforms.Compose([
+        'adc_aug': transforms.Compose([             # 先center crop 800 再center crop目标尺寸
             transforms.CenterCrop((800, 800)),
             transforms.RandomVerticalFlip(0.5),
             transforms.RandomHorizontalFlip(0.5),
@@ -26,7 +26,7 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             transforms.RandomRotation(degrees=15),
             transforms.CenterCrop((crop_reso, crop_reso)),
         ]),
-        'adc_resize_aug': transforms.Compose([
+        'adc_resize_aug': transforms.Compose([        # train 先center crop 832  再resize目标尺寸
             transforms.CenterCrop((832, 832)),
             transforms.RandomVerticalFlip(0.5),
             transforms.RandomHorizontalFlip(0.5),
@@ -34,14 +34,14 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             transforms.RandomRotation(degrees=15),
             transforms.Resize((crop_reso, crop_reso)),
         ]),
-        'adc_oi_center_aug': transforms.Compose([
+        'adc_oi_center_aug': transforms.Compose([        # train 原图center crop
             transforms.RandomVerticalFlip(0.5),
             transforms.RandomHorizontalFlip(0.5),
-            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
             transforms.RandomRotation(degrees=15),
             transforms.CenterCrop((crop_reso, crop_reso)),
         ]),
-        'adc_oi_resize_aug': transforms.Compose([
+        'adc_oi_resize_aug': transforms.Compose([         # train 原图resize
             transforms.RandomVerticalFlip(0.5),
             transforms.RandomHorizontalFlip(0.5),
             transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
@@ -53,12 +53,17 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        'adc_val_totensor': transforms.Compose([
+        'adc_val_totensor': transforms.Compose([             # val 原图center crop
             transforms.CenterCrop((crop_reso, crop_reso)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        'adc_val_resize_totensor': transforms.Compose([
+        'adc_val_oi_resize_totensor': transforms.Compose([    # val 原图resize
+            transforms.Resize((crop_reso, crop_reso)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]),
+        'adc_val_resize_totensor': transforms.Compose([       # val 先centercrop 再resize
             transforms.CenterCrop((832, 832)),
             transforms.Resize((crop_reso, crop_reso)),
             transforms.ToTensor(),
@@ -87,25 +92,49 @@ class LoadConfig(object):
         # put image data in $PATH/data
         # put annotation txt file in $PATH/anno
 
-        if args.dataset == 'jssi_aoi':
+        # ===================jssi aoi 过程检===================
+        if args.dataset == 'jssi_aoi_center':
             self.dataset = args.dataset
             self.rawdata_root = '/data3/pzh/data/jssi/aoi'
-            self.anno_root = './datasets/jssi_aoi'
+            self.anno_root = './datasets/jssi_aoi/jssi_aoi_center'
             self.numcls = 2
+        elif args.dataset == 'jssi_aoi_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
+            self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize'
+            self.numcls = 2
+        elif args.dataset == 'jssi_aoi_resize_center':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
+            self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize_center'
+            self.numcls = 2
+
+        # ===================jssi photo 终检===================
         elif args.dataset == 'jssi_photo_center':
             self.dataset = args.dataset
             self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo_center'
+            self.anno_root = './datasets/jssi_photo/jssi_photo_center'
             self.numcls = 2
         elif args.dataset == 'jssi_photo_resize':
             self.dataset = args.dataset
             self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo_resize'
+            self.anno_root = './datasets/jssi_photo/jssi_photo_resize'
             self.numcls = 2
         elif args.dataset == 'jssi_photo_center_resize':
             self.dataset = args.dataset
             self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo_center_resize'
+            self.anno_root = './datasets/jssi_photo/jssi_photo_center_resize'
+            self.numcls = 2
+        # ===================ht==================================
+        elif args.dataset == 'ht_less500_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data4/exp_data/'
+            self.anno_root = './datasets/ht_fi/ht_less500_resize'
+            self.numcls = 2
+        elif args.dataset == 'ht_more500_center_resize':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data4/exp_data/'
+            self.anno_root = './datasets/ht_more500_center_resize'
             self.numcls = 2
         elif args.dataset == 'ht_less500_center_resize':
             self.dataset = args.dataset
@@ -117,6 +146,7 @@ class LoadConfig(object):
             self.rawdata_root = '/data4/exp_data/'
             self.anno_root = './datasets/ht_more500_center_resize'
             self.numcls = 2
+        # ===================smic om==================================
         elif args.dataset == 'smic_om_3':
             self.dataset = args.dataset
             self.rawdata_root = r'D:\Solution\datas\smic_om_3' # /data3/pzh/data/smic/smic_om_3
@@ -170,7 +200,3 @@ class LoadConfig(object):
         self.log_folder = './logs'
         if not os.path.exists(self.log_folder):
             os.mkdir(self.log_folder)
-
-
-
-
