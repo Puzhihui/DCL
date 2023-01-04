@@ -69,6 +69,11 @@ class dataset(data.Dataset):
             if self.val_resize_totensor and 'val_resize_aug' in img_path:
                 # print('val resize img:', img_path)
                 img = self.val_resize_totensor(img)
+            elif 'OnlyResize' in img_path:
+                # print('val only resize:', img_path)
+                if not self.val_resize_totensor:
+                    raise Exception("with OnlyResize, val_resize_totensor is None!")
+                img = self.val_resize_totensor(img)
             else:
                 img = self.totensor(img)
 
@@ -79,6 +84,11 @@ class dataset(data.Dataset):
         # img_unswap = self.common_aug(img) if not self.common_aug is None else img
         if self.train and self.resize_aug and 'train_resize_aug' in img_path:
             # print('train resize img:', img_path)
+            img_unswap = self.resize_aug(img)          # 原图centercrop(大图) -> resize至小图
+        elif self.train and 'OnlyResize' in img_path:  # 仅resize,也就是centercrop(大图)->resize至小图  不进行centercrop(小图)的数据
+            # print('train only resize:', img_path)
+            if not self.resize_aug:
+                raise Exception("with OnlyResize, resize_aug is None!")
             img_unswap = self.resize_aug(img)
         else:
             img_unswap = self.common_aug(img) if not self.common_aug is None else img
