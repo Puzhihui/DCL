@@ -170,3 +170,10 @@ class LoadConfig(object):
         self.log_folder = './logs'
         if not os.path.exists(self.log_folder):
             os.mkdir(self.log_folder)
+
+
+class smic_online():
+    online_model_dir = r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic"
+    online_model_name = "smic_fir_m6.pth"
+    best_model_txt = r"D:\Solution\code\smic\DCL\smic_tools\best_model_path.txt"
+

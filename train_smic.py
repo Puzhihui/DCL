@@ -18,7 +18,7 @@ import torch.backends.cudnn as cudnn
 from transforms import transforms
 from utils.train_model import train
 from models.LoadModel import MainModel
-from config import LoadConfig, load_data_transformers
+from config import LoadConfig, load_data_transformers, smic_online
 from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test, collate_fn4backbone, dataset
 from logserver import LogServer
 
@@ -42,13 +42,13 @@ def parse_args():
     parser.add_argument('--save', dest='resume',
                         default=None, type=str)
     parser.add_argument('--save_dir', dest='save_dir',
-                        default='./net_model', type=str)
+                        default=r'D:\Solution\code\smic\DCL\net_model', type=str)
     parser.add_argument('--backbone', dest='backbone',
                         default='resnet50', type=str)
     parser.add_argument('--auto_resume', dest='auto_resume',
                         action='store_true')
     parser.add_argument('--epoch', dest='epoch',
-                        default=100, type=int)
+                        default=50, type=int)
     parser.add_argument('--tb', dest='train_batch',
                         default=16, type=int)
     parser.add_argument('--vb', dest='val_batch',
@@ -270,4 +270,6 @@ if __name__ == '__main__':
           checkpoint=args.check_point,
           log_server=log_server)
 
-
+    f = open(smic_online.best_model_txt, "w", encoding="utf-8")
+    f.write(save_dir)
+    f.close()
