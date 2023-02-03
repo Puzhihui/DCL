@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument('--data', dest='dataset',
                         default='smic_om_3', type=str)
     parser.add_argument('--save', dest='resume',
-                        default=None, type=str)
+                        default=r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\smic_fir_m6.pth", type=str)
     parser.add_argument('--save_dir', dest='save_dir',
                         default=r'D:\Solution\code\smic\DCL\net_model', type=str)
     parser.add_argument('--backbone', dest='backbone',
