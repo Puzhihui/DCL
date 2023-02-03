@@ -2,8 +2,9 @@ from __future__ import division
 import torch
 import math
 import random
-#from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
+# from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
 from PIL import Image, ImageOps, ImageEnhance, __version__
+
 try:
     import accimage
 except ImportError:
@@ -41,7 +42,7 @@ def to_tensor(pic):
     Returns:
         Tensor: Converted image.
     """
-    if not(_is_pil_image(pic) or _is_numpy_image(pic)):
+    if not (_is_pil_image(pic) or _is_numpy_image(pic)):
         raise TypeError('pic should be PIL Image or ndarray. Got {}'.format(type(pic)))
 
     if isinstance(pic, np.ndarray):
@@ -100,7 +101,7 @@ def to_pil_image(pic, mode=None):
     Returns:
         PIL Image: Image converted to PIL Image.
     """
-    if not(_is_numpy_image(pic) or _is_tensor_image(pic)):
+    if not (_is_numpy_image(pic) or _is_tensor_image(pic)):
         raise TypeError('pic should be Tensor or ndarray. Got {}.'.format(type(pic)))
 
     npimg = pic
@@ -375,10 +376,10 @@ def swap(img, crop):
         return im_list
 
     widthcut, highcut = img.size
-    img = img.crop((10, 10, widthcut-10, highcut-10))
+    img = img.crop((10, 10, widthcut - 10, highcut - 10))
     images = crop_image(img, crop)
     pro = 5
-    if pro >= 5:          
+    if pro >= 5:
         tmpx = []
         tmpy = []
         count_x = 0
@@ -404,7 +405,7 @@ def swap(img, crop):
         random_im = []
         for line in tmpy:
             random_im.extend(line)
-        
+
         # random.shuffle(images)
         width, high = img.size
         iw = int(width / crop[0])
@@ -423,7 +424,6 @@ def swap(img, crop):
         toImage = img
     toImage = toImage.resize((widthcut, highcut))
     return toImage
-
 
 
 def five_crop(img, size):
@@ -578,7 +578,7 @@ def adjust_hue(img, hue_factor):
     Returns:
         PIL Image: Hue adjusted image.
     """
-    if not(-0.5 <= hue_factor <= 0.5):
+    if not (-0.5 <= hue_factor <= 0.5):
         raise ValueError('hue_factor is not in [-0.5, 0.5].'.format(hue_factor))
 
     if not _is_pil_image(img):

@@ -11,11 +11,15 @@ def split_and_move(category, img_list, save_path, ratio_val):
     for img in img_list[:val_num]:
         save_img_path = os.path.join(save_path, 'val', category)
         os.makedirs(save_img_path, exist_ok=True)
+        if os.path.exists(os.path.join(save_img_path, os.path.basename(img))):
+            os.remove(os.path.join(save_img_path, os.path.basename(img)))
         shutil.move(img, save_img_path)
 
     for img in img_list[val_num:]:
         save_img_path = os.path.join(save_path, 'train', category)
         os.makedirs(save_img_path, exist_ok=True)
+        if os.path.exists(os.path.join(save_img_path, os.path.basename(img))):
+            os.remove(os.path.join(save_img_path, os.path.basename(img)))
         shutil.move(img, save_img_path)
 
 
