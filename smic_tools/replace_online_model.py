@@ -27,7 +27,7 @@ if best_path:
         print("{}模型备份失败，直接进行模型替换".format(online_model_path))
     try:
         shutil.copy2(os.path.join(best_path, online_model_name), online_model_dir)
-        print("新模型已替换完毕，请重新启动ADC服务！")
+        print("新模型已替换完毕！")
     except:
         print("{}模型不存在，请手动更新模型".format(os.path.join(best_path, online_model_name)))
 f = open(cfg.best_model_txt, "w", encoding="utf-8")
