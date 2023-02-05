@@ -6,17 +6,17 @@ support_categories = ['discolor', 'other', 'scratch']
 support_images = ['.bmp', '.BMP']
 
 
-def split_and_move(category, img_list, save_path, ratio_val):
+def split_and_move(recipe, camera, category, img_list, save_path, ratio_val):
     val_num = int(len(img_list) * ratio_val)
     for img in img_list[:val_num]:
-        save_img_path = os.path.join(save_path, 'val', category)
+        save_img_path = os.path.join(save_path, 'val', recipe, camera, category)
         os.makedirs(save_img_path, exist_ok=True)
         if os.path.exists(os.path.join(save_img_path, os.path.basename(img))):
             os.remove(os.path.join(save_img_path, os.path.basename(img)))
         shutil.move(img, save_img_path)
 
     for img in img_list[val_num:]:
-        save_img_path = os.path.join(save_path, 'train', category)
+        save_img_path = os.path.join(save_path, 'train', recipe, camera, category)
         os.makedirs(save_img_path, exist_ok=True)
         if os.path.exists(os.path.join(save_img_path, os.path.basename(img))):
             os.remove(os.path.join(save_img_path, os.path.basename(img)))
@@ -43,17 +43,37 @@ def get_train_data(data_path, save_path, ratio_val):
 
 if __name__ == "__main__":
     print('-------------------------------------------------')
+    print('1.start:开始移动数据')
     val_ratio = 0.1
     save_dir = r'D:\Solution\datas\smic_om_3'
     os.makedirs(save_dir, exist_ok=True)
-
-    from_front_data = r'D:\Solution\datas\smic_data\front'
-    from_back_data = r'D:\Solution\datas\smic_data\back'
-
-    print('1.start:开始移动数据....')
-    train_images = get_train_data(from_front_data, save_dir, val_ratio)
-    print('移动正检数据, discolor:{}张, other:{}张, scratch:{}张'.format(train_images['discolor'], train_images['other'], train_images['scratch']))
-    train_images = get_train_data(from_back_data, save_dir, val_ratio)
-    print('移动背检数据, discolor:{}张, other:{}张, scratch:{}张'.format(train_images['discolor'], train_images['other'], train_images['scratch']))
-    print('1.end:数据移动完成！数据已移动至{}'.format(save_dir))
+    smic_data = r"D:\Solution\datas\smic_data"
+    date_list = os.listdir(smic_data)
+    all_move_num = dict()
+    all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'] = 0, 0, 0
+    for per_date in date_list:
+        date_path = os.path.join(smic_data, per_date)
+        if not os.path.isdir(date_path): continue
+        recipe_list = os.listdir(date_path)
+        for recipe in recipe_list:
+            move_num = dict()
+            move_num['discolor'], move_num['other'], move_num['scratch'] = 0, 0, 0
+            recipe_path = os.path.join(date_path, recipe)
+            if not os.path.isdir(recipe_path): continue
+            camera_list = os.listdir(recipe_path)
+            for camera in camera_list:
+                camera_path = os.path.join(recipe_path, camera)
+                if not os.path.isdir(camera_path): continue
+                categories = os.listdir(camera_path)
+                for category in categories:
+                    category_path = os.path.join(camera_path, category)
+                    if not os.path.isdir(category_path): continue
+                    img_list = glob.glob(os.path.join(category_path, "*.bmp"))
+                    split_and_move(recipe, camera, category, img_list, save_dir, val_ratio)
+                    move_num[category] += len(img_list)
+                    if category not in all_move_num:
+                        all_move_num[category] = 0
+                    all_move_num[category] += len(img_list)
+            print('{}: discolor:{}张, other:{}张, scratch:{}张'.format(recipe, move_num['discolor'], move_num['other'], move_num['scratch']))
+    print('合计: discolor:{}张, other:{}张, scratch:{}张'.format(all_move_num['discolor'], all_move_num['other'], all_move_num['scratch']))
     print('-------------------------------------------------')
