@@ -50,6 +50,7 @@ class MainModel(nn.Module):
             self.model = nn.Sequential(*list(self.model.children())[:-3])
         if self.backbone_arch == 'se_resnext101_32x4d':
             self.model = nn.Sequential(*list(self.model.children())[:-2])
+            linear_size = 2048
         if self.backbone_arch == 'se_resnet101':
             self.model = nn.Sequential(*list(self.model.children())[:-2])
         if self.backbone_arch == 'efficientnet-b4':

@@ -6,7 +6,8 @@ from transforms import transforms
 from utils.autoaugment import ImageNetPolicy
 
 # pretrained model checkpoints
-pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',}
+pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',
+                    "se_resnext101_32x4d": "./models/pretrained/se_resnext101_32x4d-3b2fe3d8.pth"}
 customize_model = ['efficientnet-b4']
 
 # transforms dict
