@@ -65,6 +65,11 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
+        'adc_val_oi_resize_totensor': transforms.Compose([
+            transforms.Resize((crop_reso, crop_reso)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]),
         'None': None,
     }
     return data_transforms

@@ -50,9 +50,9 @@ def parse_args():
     parser.add_argument('--epoch', dest='epoch',
                         default=50, type=int)
     parser.add_argument('--tb', dest='train_batch',
-                        default=16, type=int)
+                        default=1, type=int)
     parser.add_argument('--vb', dest='val_batch',
-                        default=16, type=int)
+                        default=1, type=int)
     parser.add_argument('--sp', dest='save_point',
                         default=5000, type=int)
     parser.add_argument('--cp', dest='check_point',
@@ -130,8 +130,9 @@ if __name__ == '__main__':
                         swap_size=args.swap_num,\
                         anno = Config.train_anno,\
                         # common_aug = transformers["adc_aug"],\
-                        common_aug = transformers["adc_oi_center_aug"],\
-                        resize_aug = transformers["adc_resize_aug"],\
+                        # common_aug = transformers["adc_oi_center_aug"],\
+                        common_aug = transformers["adc_oi_resize_aug"],\
+                        resize_aug = transformers["adc_oi_resize_aug"],\
                         swap = transformers["swap"],\
                         totensor = transformers["adc_train_totensor"],\
                         train = True)
@@ -141,7 +142,7 @@ if __name__ == '__main__':
                         anno = Config.train_anno,\
                         common_aug = transformers["None"],\
                         swap = transformers["None"],\
-                        totensor = transformers["adc_val_totensor"],\
+                        totensor = transformers["adc_val_oi_resize_totensor"],\
                         train = False,
                         train_val = True)
 
@@ -150,8 +151,8 @@ if __name__ == '__main__':
                       anno = Config.val_anno,\
                       common_aug = transformers["None"],\
                       swap = transformers["None"],\
-                      totensor = transformers["adc_val_totensor"],\
-                      val_resize_totensor = transformers["adc_val_resize_totensor"],\
+                      totensor = transformers["adc_val_oi_resize_totensor"],\
+                      val_resize_totensor = transformers["adc_val_oi_resize_totensor"],\
                       test=True)
 
     dataloader = {}
