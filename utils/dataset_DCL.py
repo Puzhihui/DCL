@@ -1,14 +1,20 @@
 # coding=utf8
 from __future__ import division
 import os
+
+import cv2
 import torch
 import torch.utils.data as data
 import pandas
 import random
+import numpy as np
 import PIL.Image as Image
 from PIL import ImageStat
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+from utils.opencv_utils import cv_loader, cv_center_crop, cv_resize
+from cvtorchvision.cvtransforms.cvfunctional import crop
 
 import pdb
 
@@ -63,7 +69,8 @@ class dataset(data.Dataset):
 
     def __getitem__(self, item):
         img_path = os.path.join(self.root_path, self.paths[item])
-        img = self.pil_loader(img_path)
+        # img = self.pil_loader(img_path)
+        img = cv_loader(img_path)
         if self.test:
             # img = self.totensor(img)
             if self.val_resize_totensor and 'val_resize_aug' in img_path:
@@ -101,8 +108,20 @@ class dataset(data.Dataset):
         if self.train:
             img_swap = self.swap(img_unswap)
             image_swap_list = self.crop_image(img_swap, self.swap_size)
-            unswap_stats = [sum(ImageStat.Stat(im).mean) for im in image_unswap_list]
-            swap_stats = [sum(ImageStat.Stat(im).mean) for im in image_swap_list]
+            # unswap_stats = [sum(ImageStat.Stat(im).mean) for im in image_unswap_list]
+            unswap_stats = []
+            for im in image_unswap_list:
+                r = im[:, :, 0]
+                g = im[:, :, 1]
+                b = im[:, :, 2]
+                unswap_stats.append(np.mean(r) + np.mean(g) + np.mean(b))
+            # swap_stats = [sum(ImageStat.Stat(im).mean) for im in image_swap_list]
+            swap_stats = []
+            for im in image_swap_list:
+                r = im[:, :, 0]
+                g = im[:, :, 1]
+                b = im[:, :, 2]
+                swap_stats.append(np.mean(r) + np.mean(g) + np.mean(b))
             swap_law2 = []
             for swap_im in swap_stats:
                 distance = [abs(swap_im - unswap_im) for unswap_im in unswap_stats]
@@ -131,13 +150,15 @@ class dataset(data.Dataset):
                 return img.convert('RGB')
 
     def crop_image(self, image, cropnum):
-        width, high = image.size
+        high, width = image.shape[0], image.shape[1]
         crop_x = [int((width / cropnum[0]) * i) for i in range(cropnum[0] + 1)]
         crop_y = [int((high / cropnum[1]) * i) for i in range(cropnum[1] + 1)]
+
         im_list = []
         for j in range(len(crop_y) - 1):
             for i in range(len(crop_x) - 1):
-                im_list.append(image.crop((crop_x[i], crop_y[j], min(crop_x[i + 1], width), min(crop_y[j + 1], high))))
+                im_list.append(crop(image, crop_x[j], crop_y[i], min(crop_y[j + 1], high) - crop_y[j], min(crop_x[i + 1], width) - crop_x[i]))  #x y h w
+
         return im_list
 
 

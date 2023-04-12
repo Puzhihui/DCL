@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 
 from transforms import transforms
-from utils.autoaugment import ImageNetPolicy
+from cvtorchvision import cvtransforms
 
 # pretrained model checkpoints
 pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',
@@ -13,62 +13,61 @@ customize_model = ['efficientnet-b4']
 # transforms dict
 def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
     center_resize = 600
-    Normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    Normalize = cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     data_transforms = {
-       	'swap': transforms.Compose([
-            transforms.Randomswap((swap_num[0], swap_num[1])),
+       	'swap': cvtransforms.Compose([
+            cvtransforms.Randomswap((swap_num[0], swap_num[1])),
         ]),
-        'adc_aug': transforms.Compose([             # 先center crop 800 再center crop目标尺寸
-            transforms.CenterCrop((800, 800)),
-            transforms.RandomVerticalFlip(0.5),
-            transforms.RandomHorizontalFlip(0.5),
-            transforms.CenterCrop((600, 600)),
-            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
-            transforms.RandomRotation(degrees=15),
-            transforms.CenterCrop((crop_reso, crop_reso)),
+        'adc_aug': cvtransforms.Compose([             # 先center crop 800 再center crop目标尺寸
+            cvtransforms.CenterCrop((800, 800)),
+            cvtransforms.RandomVerticalFlip(0.5),
+            cvtransforms.RandomHorizontalFlip(0.5),
+            # # transforms.CenterCrop((600, 600)),
+            # # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            # # transforms.RandomRotation(degrees=15),
+            cvtransforms.CenterCrop((crop_reso, crop_reso)),
         ]),
-        'adc_resize_aug': transforms.Compose([        # train 先center crop 832  再resize目标尺寸
-            transforms.CenterCrop((832, 832)),
-            transforms.RandomVerticalFlip(0.5),
-            transforms.RandomHorizontalFlip(0.5),
-            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
-            transforms.RandomRotation(degrees=15),
-            transforms.Resize((crop_reso, crop_reso)),
+        'adc_resize_aug': cvtransforms.Compose([        # train 先center crop 832  再resize目标尺寸
+            cvtransforms.CenterCrop((832, 832)),
+            cvtransforms.RandomVerticalFlip(0.5),
+            cvtransforms.RandomHorizontalFlip(0.5),
+            # # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            # # transforms.RandomRotation(degrees=15),
+            cvtransforms.Resize((crop_reso, crop_reso)),
         ]),
-        'adc_oi_center_aug': transforms.Compose([        # train 原图center crop
-            transforms.RandomVerticalFlip(0.5),
-            transforms.RandomHorizontalFlip(0.5),
-            # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
-            transforms.RandomRotation(degrees=15),
-            transforms.CenterCrop((crop_reso, crop_reso)),
+        # 'adc_oi_center_aug': cvtransforms.Compose([        # train 原图center crop
+        #     cvtransforms.RandomVerticalFlip(0.5),
+        #     cvtransforms.RandomHorizontalFlip(0.5),
+        #     # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+        #     # transforms.RandomRotation(degrees=15),
+        #     cvtransforms.CenterCrop((crop_reso, crop_reso)),
+        # ]),
+        # 'adc_oi_resize_aug': transforms.Compose([         # train 原图resize
+        #     transforms.RandomVerticalFlip(0.5),
+        #     transforms.RandomHorizontalFlip(0.5),
+        #     transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+        #     transforms.RandomRotation(degrees=15),
+        #     transforms.Resize((crop_reso, crop_reso)),
+        # ]),
+        'adc_train_totensor': cvtransforms.Compose([
+            cvtransforms.ToTensor(),
+            cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        'adc_oi_resize_aug': transforms.Compose([         # train 原图resize
-            transforms.RandomVerticalFlip(0.5),
-            transforms.RandomHorizontalFlip(0.5),
-            transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
-            transforms.RandomRotation(degrees=15),
-            transforms.Resize((crop_reso, crop_reso)),
+        'adc_val_totensor': cvtransforms.Compose([             # val 原图center crop
+            cvtransforms.CenterCrop((crop_reso, crop_reso)),
+            cvtransforms.ToTensor(),
+            cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        'adc_train_totensor': transforms.Compose([
-            transforms.CenterCrop((crop_reso, crop_reso)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]),
-        'adc_val_totensor': transforms.Compose([             # val 原图center crop
-            transforms.CenterCrop((crop_reso, crop_reso)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]),
-        'adc_val_oi_resize_totensor': transforms.Compose([    # val 原图resize
-            transforms.Resize((crop_reso, crop_reso)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]),
-        'adc_val_resize_totensor': transforms.Compose([       # val 先centercrop 再resize
-            transforms.CenterCrop((832, 832)),
-            transforms.Resize((crop_reso, crop_reso)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        # 'adc_val_oi_resize_totensor': transforms.Compose([    # val 原图resize
+        #     transforms.Resize((crop_reso, crop_reso)),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        # ]),
+        'adc_val_resize_totensor': cvtransforms.Compose([       # val 先centercrop 再resize
+            cvtransforms.CenterCrop((832, 832)),
+            cvtransforms.Resize((crop_reso, crop_reso)),
+            cvtransforms.ToTensor(),
+            cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
         'None': None,
     }
