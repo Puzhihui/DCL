@@ -51,7 +51,10 @@ class dataset(data.Dataset):
         elif isinstance(anno, dict):
             self.paths = anno['img_name']
             self.labels = anno['label']
-
+        if train:
+            print("train images: {}".format(len(self.paths)))
+        if test:
+            print("val or test images: {}".format(len(self.paths)))
         if train_val:
             self.paths, self.labels = random_sample(self.paths, self.labels)
         self.common_aug = common_aug
