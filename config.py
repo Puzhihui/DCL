@@ -8,7 +8,7 @@ from cvtorchvision import cvtransforms
 # pretrained model checkpoints
 pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',
                     "se_resnext101_32x4d": "./models/pretrained/se_resnext101_32x4d-3b2fe3d8.pth"}
-customize_model = ['efficientnet-b4']
+customize_model = ['efficientnet-b4', 'efficientnet-b1', 'efficientnet-b3']
 
 # transforms dict
 def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
@@ -42,13 +42,13 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
         #     # transforms.RandomRotation(degrees=15),
         #     cvtransforms.CenterCrop((crop_reso, crop_reso)),
         # ]),
-        # 'adc_oi_resize_aug': transforms.Compose([         # train 原图resize
-        #     transforms.RandomVerticalFlip(0.5),
-        #     transforms.RandomHorizontalFlip(0.5),
-        #     transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
-        #     transforms.RandomRotation(degrees=15),
-        #     transforms.Resize((crop_reso, crop_reso)),
-        # ]),
+        'adc_oi_resize_aug': transforms.Compose([         # train 原图resize
+            cvtransforms.RandomVerticalFlip(0.5),
+            cvtransforms.RandomHorizontalFlip(0.5),
+            # # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
+            # # transforms.RandomRotation(degrees=15),
+            cvtransforms.Resize((crop_reso, crop_reso)),
+        ]),
         'adc_train_totensor': cvtransforms.Compose([
             cvtransforms.ToTensor(),
             cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -58,11 +58,11 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             cvtransforms.ToTensor(),
             cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        # 'adc_val_oi_resize_totensor': transforms.Compose([    # val 原图resize
-        #     transforms.Resize((crop_reso, crop_reso)),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        # ]),
+        'adc_val_oi_resize_totensor': transforms.Compose([    # val 原图resize
+            cvtransforms.Resize((crop_reso, crop_reso)),
+            cvtransforms.ToTensor(),
+            cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]),
         'adc_val_resize_totensor': cvtransforms.Compose([       # val 先centercrop 再resize
             cvtransforms.CenterCrop((832, 832)),
             cvtransforms.Resize((crop_reso, crop_reso)),
@@ -108,6 +108,11 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/pzh/data/jssi/aoi'
             self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize_center'
             self.numcls = 2
+        elif args.dataset == 'jssi_aoi_multi':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/jssi/aoi_multi'
+            self.anno_root = './datasets/jssi_aoi/jssi_aoi_multi'
+            self.numcls = 41
 
         # ===================jssi photo 终检===================
         elif args.dataset == 'jssi_photo_center':
@@ -125,6 +130,11 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/pzh/data/jssi/photo'
             self.anno_root = './datasets/jssi_photo/jssi_photo_center_resize'
             self.numcls = 2
+        elif args.dataset == 'jssi_photo_multi':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/jssi/photo_multi'
+            self.anno_root = './datasets/jssi_photo/jssi_photo_multi'
+            self.numcls = 43
         # ===================ht==================================
         elif args.dataset == 'ht_less500_resize':
             self.dataset = args.dataset

@@ -22,6 +22,17 @@ class Efficientb4(nn.Module):
         return x
 
 
+class Efficient_bx(nn.Module):
+    def __init__(self, backbone, num_classes=2):
+        super().__init__()
+        self.model = EfficientNet.from_pretrained(backbone)
+        in_features = self.model._fc.in_features
+        self.model._fc = nn.Linear(in_features, num_classes)
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
 class MainModel(nn.Module):
     def __init__(self, config):
         super(MainModel, self).__init__()
@@ -56,6 +67,12 @@ class MainModel(nn.Module):
         if self.backbone_arch == 'efficientnet-b4':
             self.model = Efficientb4(num_classes=self.num_classes)
             linear_size = 1792
+        if self.backbone_arch == 'efficientnet-b1':
+            self.model = Efficient_bx('efficientnet-b1', num_classes=self.num_classes)
+            linear_size = 1280
+        if self.backbone_arch == 'efficientnet-b3':
+            self.model = Efficient_bx('efficientnet-b3', num_classes=self.num_classes)
+            linear_size = 1536
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
         self.classifier = nn.Linear(linear_size, self.num_classes, bias=False)
 

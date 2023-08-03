@@ -23,7 +23,7 @@ from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test,
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1, 2, 3'
 
 # nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 
@@ -106,7 +106,8 @@ if __name__ == '__main__':
                         swap_size=args.swap_num,\
                         anno = Config.train_anno,\
                         common_aug = transformers["adc_aug"],\
-                        resize_aug = transformers["adc_resize_aug"],\
+                        # resize_aug = transformers["adc_resize_aug"],\
+                        resize_aug = transformers["adc_oi_resize_aug"],\
                         swap = transformers["swap"],\
                         totensor = transformers["adc_train_totensor"],\
                         train = True)
@@ -126,7 +127,8 @@ if __name__ == '__main__':
                       common_aug = transformers["None"],\
                       swap = transformers["None"],\
                       totensor = transformers["adc_val_totensor"],\
-                      val_resize_totensor = transformers["adc_val_resize_totensor"],\
+                      # val_resize_totensor = transformers["adc_val_resize_totensor"],\
+                      val_resize_totensor = transformers["adc_val_oi_resize_totensor"],\
                       test=True)
 
     dataloader = {}
