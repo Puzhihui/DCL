@@ -42,7 +42,10 @@ def parse_ManualResult(manual_path):
         IsReview = per_record["IsReview"]
         if not IsReview and not stat_unreviewed:
             continue
-        Source = bincode_dict[per_record["Source"]]
+        try:
+            Source = bincode_dict[per_record["Source"]]
+        except:
+            continue
         BinCode = per_record["BinCode"]
         DefectImagePath = per_record["DefectImagePath"]
         aDCDataCollection = per_record["aDCDataCollection"]
@@ -75,12 +78,12 @@ def stat_mode(update_time_int, recipe, lot, lot_path, FrontOrBack, camera):
         #print(manual_result)
         if len(adc_result) == 0 or len(manual_result) == 0:
             continue
-        print(len(manual_result))
+        # print(len(manual_result))
         for adc_img_path, per_manual_result in manual_result.items():
             DefectImagePath = per_manual_result["DefectImagePath"]
             Source = per_manual_result["Source"]
             if camera not in DefectImagePath:
-                print(camera, DefectImagePath)
+                # print(camera, DefectImagePath)
                 continue
             adc_label = per_manual_result["adc_result"]["label"]
             manual_label = bincode_dict[per_manual_result["BinCode"]]
@@ -121,18 +124,27 @@ def stat_mode(update_time_int, recipe, lot, lot_path, FrontOrBack, camera):
 def parse_args():
     parser = argparse.ArgumentParser(description='get report')
     parser.add_argument('--imagedata', default=r'F:\ImageData', type=str)
-    parser.add_argument('--save_img_path', default=r'D:\Solution\datas\offline_test\org', type=str)
-    parser.add_argument('--date_start', default=20230518, type=int)
-    parser.add_argument('--date_end', default=20230521, type=int)
+    parser.add_argument('--save_img_path', default=r'D:\Solution\datas\get_report', type=str)
+    parser.add_argument('--txt', default=r'D:\Solution\datas\get_report\report.txt', type=str)
     args = parser.parse_args()
     return args
 
 args = parse_args()
-
 imagedata = args.imagedata
 save_img_path = args.save_img_path
 result = dict()
-date_interval = [args.date_start, args.date_end]
+txt = args.txt
+f = open(txt, 'r', encoding='utf-8')
+lines = f.readlines()
+f.close()
+recipe_dict = dict()
+for line in lines:
+    line = line.replace("\n", "")
+    recipe, lot = line.split('\t')[0]+"_VSI_OM", line.split('\t')[1]
+    print(recipe, lot)
+    if recipe not in recipe_dict.keys():
+        recipe_dict[recipe] = []
+    recipe_dict[recipe].append(lot)
 
 stat_unreviewed = False  # 统计未review的图片
 adc_img_split = False  # 是否会切割小图
@@ -143,15 +155,18 @@ bincode_str2int_dict = {"other": "OTHER", "scratch": "SCRATCH", "discolor": "DIS
 # 获取文件信息
 recipe_list = os.listdir(imagedata)
 for recipe in recipe_list:
-    # if recipe != "04NQ_VSI_OM":
-    #     continue
+    if recipe not in recipe_dict.keys():
+        continue
     recipe_path = os.path.join(imagedata, recipe)
     if not os.path.isdir(recipe_path):
         continue
     result[recipe] = dict()
 
     lot_list = os.listdir(recipe_path)
+    target_lot_list = recipe_dict[recipe]
     for lot in lot_list:
+        if lot not in target_lot_list:
+            continue
         result[recipe][lot] = dict()
         lot_path = os.path.join(recipe_path, lot)
         lot_path_stat = os.stat(lot_path)

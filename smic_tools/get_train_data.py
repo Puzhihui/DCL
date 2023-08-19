@@ -50,14 +50,14 @@ if __name__ == "__main__":
     smic_data = r"D:\Solution\datas\smic_data"
     date_list = os.listdir(smic_data)
     all_move_num = dict()
-    all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'] = 0, 0, 0
+    all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false'] = 0, 0, 0, 0
     for per_date in date_list:
         date_path = os.path.join(smic_data, per_date)
         if not os.path.isdir(date_path): continue
         recipe_list = os.listdir(date_path)
         for recipe in recipe_list:
             move_num = dict()
-            move_num['discolor'], move_num['other'], move_num['scratch'] = 0, 0, 0
+            move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false'] = 0, 0, 0, 0
             recipe_path = os.path.join(date_path, recipe)
             if not os.path.isdir(recipe_path): continue
             camera_list = os.listdir(recipe_path)
@@ -74,6 +74,6 @@ if __name__ == "__main__":
                     if category not in all_move_num:
                         all_move_num[category] = 0
                     all_move_num[category] += len(img_list)
-            print('{}: discolor:{}张, other:{}张, scratch:{}张'.format(recipe, move_num['discolor'], move_num['other'], move_num['scratch']))
-    print('合计: discolor:{}张, other:{}张, scratch:{}张'.format(all_move_num['discolor'], all_move_num['other'], all_move_num['scratch']))
+            print('{}: discolor:{}张, other:{}张, scratch:{}张, false:{}张'.format(recipe, move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false']))
+    print('合计: discolor:{}张, other:{}张, scratch:{}张, false:{}张'.format(all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false']))
     print('-------------------------------------------------')

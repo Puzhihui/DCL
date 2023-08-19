@@ -127,7 +127,7 @@ class LoadConfig(object):
             self.dataset = args.dataset
             self.rawdata_root = r'D:\Solution\datas\smic_om_3' # /data3/pzh/data/smic/smic_om_3
             self.anno_root = './datasets/smic_om_3'
-            self.numcls = 3
+            self.numcls = 4
         else:
             raise Exception('dataset not defined ???')
 
