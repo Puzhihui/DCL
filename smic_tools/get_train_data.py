@@ -1,8 +1,27 @@
+import sys
+sys.path.insert(0, '../')
 import os
 import shutil
 import glob
+import argparse
+from config import smic_back_online, smic_front_online
 
-support_categories = ['discolor', 'other', 'scratch']
+def parse_args():
+    parser = argparse.ArgumentParser(description='replace online model')
+    parser.add_argument('--mode', default='Back', type=str)
+    args = parser.parse_args()
+    return args
+
+args = parse_args()
+mode = args.mode
+if mode == "Back":
+    cfg_mode = smic_back_online()
+elif mode == "Front":
+    cfg_mode = smic_front_online()
+else:
+    raise "Mode error!!!"
+
+# support_categories = ['discolor', 'other', 'scratch']
 support_images = ['.bmp', '.BMP']
 
 
@@ -45,9 +64,13 @@ if __name__ == "__main__":
     print('-------------------------------------------------')
     print('1.start:开始移动数据')
     val_ratio = 0.1
-    save_dir = r'D:\Solution\datas\smic_om_3'
+    save_dir = cfg_mode.train_data_path
     os.makedirs(save_dir, exist_ok=True)
-    smic_data = r"D:\Solution\datas\smic_data"
+    smic_data_root = r"D:\Solution\datas\smic_data"
+    if mode == "Back":
+        smic_data = os.path.join(smic_data_root, "Back")
+    elif mode == "Front":
+        smic_data = os.path.join(smic_data_root, "Front")
     date_list = os.listdir(smic_data)
     all_move_num = dict()
     all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false'] = 0, 0, 0, 0

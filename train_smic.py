@@ -18,7 +18,7 @@ import torch.backends.cudnn as cudnn
 from transforms import transforms
 from utils.train_model import train
 from models.LoadModel import MainModel
-from config import LoadConfig, load_data_transformers, smic_online
+from config import LoadConfig, load_data_transformers, smic_front_online, smic_back_online
 from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test, collate_fn4backbone, dataset
 from logserver import LogServer
 
@@ -37,10 +37,11 @@ def get_str_datetime():
 # parameters setting
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
+    parser.add_argument('--mode', default='Back', type=str)
     parser.add_argument('--data', dest='dataset',
                         default='smic_om_3', type=str)
     parser.add_argument('--save', dest='resume',
-                        default=r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\smic_fir_m6.pth", type=str)
+                        default=None, type=str)
     parser.add_argument('--save_dir', dest='save_dir',
                         default=r'D:\Solution\code\smic\DCL\net_model', type=str)
     parser.add_argument('--backbone', dest='backbone',
@@ -96,6 +97,15 @@ def auto_load_resume(load_dir):
     return os.path.join(load_dir, choosed, choosed_w)
 
 
+args = parse_args()
+mode = args.mode
+if mode == "Back":
+    cfg_mode = smic_back_online()
+elif mode == "Front":
+    cfg_mode = smic_front_online()
+else:
+    raise "Mode error!!!"
+
 if __name__ == '__main__':
     # ========================================================日志模块========================================================
     log_path = r"D:\Solution\log\train_model" if platform.system().lower() == 'windows' else './logs'
@@ -113,7 +123,6 @@ if __name__ == '__main__':
     torch.set_num_threads(set_torch_threads)
     log_server.logging("set_torch_threads: {}, now torch num threads:{}".format(set_torch_threads, torch.get_num_threads()))
 
-    args = parse_args()
     print(args, flush=True)
     _ = log_server.logging("{}".format(args)) if log_server else 1
     Config = LoadConfig(args, 'train')
@@ -197,6 +206,7 @@ if __name__ == '__main__':
     model = MainModel(Config)
 
     # load model
+    args.resume = os.path.join(cfg_mode.online_model_dir, cfg_mode.online_model_name)
     if (args.resume is None) and (not args.auto_resume):
         print('train from imagenet pretrained models ...', flush=True)
         _ = log_server.logging("train from imagenet pretrained models ...") if log_server else 1
@@ -258,7 +268,8 @@ if __name__ == '__main__':
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=0.1)
 
     # train entry
-    train(Config,
+    train(cfg_mode.online_model_name,
+          Config,
           model,
           epoch_num=args.epoch,
           start_epoch=args.start_epoch,
@@ -271,6 +282,6 @@ if __name__ == '__main__':
           checkpoint=args.check_point,
           log_server=log_server)
 
-    f = open(smic_online.best_model_txt, "w", encoding="utf-8")
+    f = open(cfg_mode.best_model_txt, "w", encoding="utf-8")
     f.write(save_dir)
     f.close()

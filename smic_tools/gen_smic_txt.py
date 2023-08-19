@@ -1,12 +1,32 @@
+import sys
+sys.path.insert(0, '../')
 import os
 import glob
+from config import smic_back_online, smic_front_online
+
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='replace online model')
+    parser.add_argument('--mode', default='Back', type=str)
+    args = parser.parse_args()
+    return args
+
+args = parse_args()
+mode = args.mode
+if mode == "Back":
+    cfg_mode = smic_back_online()
+elif mode == "Front":
+    cfg_mode = smic_front_online()
+else:
+    raise "Mode error!!!"
 
 multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
 
-train_data_path = r'D:\Solution\datas\smic_om_3\train'
-val_data_path = r'D:\Solution\datas\smic_om_3\val'
+train_data_path = os.path.join(cfg_mode.train_data_path, "train")
+val_data_path = os.path.join(cfg_mode.train_data_path, "val")
 
-txt_root_path = r'D:\Solution\code\smic\DCL\datasets\smic_om_3'
+txt_root_path = cfg_mode.txt_root_path
 os.makedirs(txt_root_path, exist_ok=True)
 f_train = open(os.path.join(txt_root_path, 'train.txt'), 'w', encoding='utf-8')
 f_val = open(os.path.join(txt_root_path, 'val.txt'), 'w', encoding='utf-8')

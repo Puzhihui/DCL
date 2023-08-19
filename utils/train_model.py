@@ -22,7 +22,8 @@ def dt():
     return datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
 
 
-def train(Config,
+def train(online_model_name,
+          Config,
           model,
           epoch_num,
           start_epoch,
@@ -168,7 +169,7 @@ def train(Config,
                     val_best_epoch = epoch
                     best_weight_save_path = os.path.join(save_dir, 'best_weights_%d_%d_%.4f.pth' % (val_best_epoch, batch_cnt, val_best_acc))
                     torch.save(model.state_dict(), best_weight_save_path)
-                    best_model_save_path = os.path.join(save_dir, 'smic_fir_m6.pth')
+                    best_model_save_path = os.path.join(save_dir, online_model_name)
                     torch.save(model.state_dict(), best_model_save_path)
                     print_string_4 = "save best weight to {} and {}".format(best_weight_save_path, best_model_save_path)
                     print(print_string_4)

@@ -1,11 +1,15 @@
+import sys
+sys.path.insert(0, '../')
 import os, glob
 import csv
 import datetime, argparse
+from config import smic_back_online, smic_front_online
 
 def parse_args():
     parser = argparse.ArgumentParser(description='stat acc')
+    parser.add_argument('--mode', default='Back', type=str)
     parser.add_argument('--data', default=r'D:\Solution\datas\get_report', type=str)
-    parser.add_argument('--txt', default=r'D:\Solution\datas\get_report\report.txt', type=str)
+    # parser.add_argument('--txt', default=r'D:\Solution\datas\get_report\report.txt', type=str)
     args = parser.parse_args()
     return args
 
@@ -110,8 +114,16 @@ def txtrow(recipe, lot, mode, adc_reslut_dict, adc_wrong_dict, manual_reslut_dic
 
 categories = ["discolor", "false", "other", "scratch"]
 args = parse_args()
-path = args.data
-txt = args.txt
+mode = args.mode
+if mode == "Back":
+    cfg_mode = smic_back_online()
+    path = os.path.join(args.data, "Back")
+elif mode == "Front":
+    cfg_mode = smic_front_online()
+    path = os.path.join(args.data, "Front")
+else:
+    raise "Mode error!!!"
+txt = os.path.join(path, "report.txt")
 f = open(txt, 'r', encoding='utf-8')
 lines = f.readlines()
 f.close()

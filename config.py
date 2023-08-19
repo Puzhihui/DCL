@@ -123,11 +123,21 @@ class LoadConfig(object):
             self.rawdata_root = '/data4/exp_data/'
             self.anno_root = './datasets/ht_more500_center_resize'
             self.numcls = 2
-        elif args.dataset == 'smic_om_3':
+        elif args.dataset == 'smic_om_back':
             self.dataset = args.dataset
-            self.rawdata_root = r'D:\Solution\datas\smic_om_3' # /data3/pzh/data/smic/smic_om_3
-            self.anno_root = './datasets/smic_om_3'
+            self.rawdata_root = r'D:\Solution\datas\smic_om_back' # /data3/pzh/data/smic/smic_om_3
+            self.anno_root = './datasets/smic_om_back'
             self.numcls = 4
+        elif args.dataset == 'smic_om_front':
+            self.dataset = args.dataset
+            self.rawdata_root = r'D:\Solution\datas\smic_om_front'
+            self.anno_root = './datasets/smic_om_front'
+            self.numcls = 4
+        elif args.dataset == 'smic_om_front_2':
+            self.dataset = args.dataset
+            self.rawdata_root = r'D:\Solution\datas\smic_om_front_2'
+            self.anno_root = './datasets/smic_om_front_2'
+            self.numcls = 2
         else:
             raise Exception('dataset not defined ???')
 
@@ -178,8 +188,18 @@ class LoadConfig(object):
             os.mkdir(self.log_folder)
 
 
-class smic_online():
+class smic_back_online():
     online_model_dir = r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic"
-    online_model_name = "smic_fir_m6.pth"
-    best_model_txt = r"D:\Solution\code\smic\DCL\smic_tools\best_model_path.txt"
+    online_model_name = "smic_back_m6.pth"
+    best_model_txt = r"D:\Solution\code\smic\DCL\smic_tools\back_best_model_path.txt"
 
+    train_data_path = r'D:\Solution\datas\smic_om_back'
+    txt_root_path =   r'D:\Solution\code\smic\DCL\datasets\smic_om_back'
+
+class smic_front_online():
+    online_model_dir = r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic"
+    online_model_name = "smic_front_m6.pth"
+    best_model_txt = r"D:\Solution\code\smic\DCL\smic_tools\front_best_model_path.txt"
+
+    train_data_path = r'D:\Solution\datas\smic_om_front'
+    txt_root_path =   r'D:\Solution\code\smic\DCL\datasets\smic_om_front'
