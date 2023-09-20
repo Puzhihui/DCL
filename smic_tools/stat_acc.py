@@ -1,15 +1,12 @@
-import sys
-sys.path.insert(0, '../')
 import os, glob
-import csv
+import csv, shutil
 import datetime, argparse
-from config import smic_back_online, smic_front_online
 
 def parse_args():
     parser = argparse.ArgumentParser(description='stat acc')
     parser.add_argument('--mode', default='Back', type=str)
     parser.add_argument('--data', default=r'D:\Solution\datas\get_report', type=str)
-    # parser.add_argument('--txt', default=r'D:\Solution\datas\get_report\report.txt', type=str)
+    parser.add_argument('--txt', default=r'D:\Solution\datas\get_report\report.txt', type=str)
     args = parser.parse_args()
     return args
 
@@ -41,7 +38,7 @@ def adc_reslut_stat(mode_path):
     return adc_reslut_dict
 
 
-def find_adc_wrong_img(mode_path, label):
+def find_adc_wrong_img(mode_path, label, save_img=False):
     img_list = glob.glob(os.path.join(mode_path, "*", "*.bmp"))
     wrong = 0
     for img in img_list:
@@ -53,6 +50,13 @@ def find_adc_wrong_img(mode_path, label):
             continue
         if manual != adc and adc==label:
             wrong += 1
+            if save_img:
+                underkill_path = os.path.join(path, "underkill", "{}_{}_{}_{}_{}".format(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, datetime.datetime.now().hour, datetime.datetime.now().minute), manual)
+                os.makedirs(underkill_path, exist_ok=True)
+                try:
+                    shutil.copy2(img, underkill_path)
+                except:
+                    continue
     return wrong
 
 def adc_wrong_stat(mode_path):
@@ -60,7 +64,7 @@ def adc_wrong_stat(mode_path):
     for category in categories:
         adc_wrong_dict[category] = 0
     adc_wrong_dict["discolor"] = find_adc_wrong_img(mode_path, "discolor")
-    adc_wrong_dict["false"] = find_adc_wrong_img(mode_path, "false")
+    adc_wrong_dict["false"] = find_adc_wrong_img(mode_path, "false", True)
     adc_wrong_dict["other"] = find_adc_wrong_img(mode_path, "other")
     adc_wrong_dict["scratch"] = find_adc_wrong_img(mode_path, "scratch")
     return adc_wrong_dict
@@ -102,10 +106,10 @@ def txtrow(recipe, lot, mode, adc_reslut_dict, adc_wrong_dict, manual_reslut_dic
     (adc_reslut_dict["other"]-adc_wrong_dict["other"])/adc_reslut_dict["other"] if adc_reslut_dict["other"]!=0 else "-", 
     (adc_reslut_dict["false"]-adc_wrong_dict["false"])/adc_reslut_dict["false"] if adc_reslut_dict["false"]!=0 else "-", 
     #recall
-    (adc_reslut_dict["scratch"]-adc_wrong_dict["scratch"])/manual_reslut_dict["scratch"] if adc_reslut_dict["scratch"]!=0 else "-", 
-    (adc_reslut_dict["discolor"]-adc_wrong_dict["discolor"])/manual_reslut_dict["discolor"]  if adc_reslut_dict["discolor"]!=0 else "-", 
-    (adc_reslut_dict["other"]-adc_wrong_dict["other"])/manual_reslut_dict["other"] if adc_reslut_dict["other"]!=0 else "-", 
-    (adc_reslut_dict["false"]-adc_wrong_dict["false"])/manual_reslut_dict["false"] if adc_reslut_dict["false"]!=0 else "-", 
+    (adc_reslut_dict["scratch"]-adc_wrong_dict["scratch"])/manual_reslut_dict["scratch"] if manual_reslut_dict["scratch"]!=0 else "-", 
+    (adc_reslut_dict["discolor"]-adc_wrong_dict["discolor"])/manual_reslut_dict["discolor"]  if manual_reslut_dict["discolor"]!=0 else "-", 
+    (adc_reslut_dict["other"]-adc_wrong_dict["other"])/manual_reslut_dict["other"] if manual_reslut_dict["other"]!=0 else "-", 
+    (adc_reslut_dict["false"]-adc_wrong_dict["false"])/manual_reslut_dict["false"] if manual_reslut_dict["false"]!=0 else "-", 
     # underkill  rate
     adc_wrong_dict["false"]/defect if defect!=0 else "-"
     ]
@@ -116,11 +120,15 @@ categories = ["discolor", "false", "other", "scratch"]
 args = parse_args()
 mode = args.mode
 if mode == "Back":
-    cfg_mode = smic_back_online()
+    #cfg_mode = smic_back_online()
     path = os.path.join(args.data, "Back")
+    bright = "Back"
+    dark = "BackDark"
 elif mode == "Front":
-    cfg_mode = smic_front_online()
+    #cfg_mode = smic_front_online()
     path = os.path.join(args.data, "Front")
+    bright = "Front"
+    dark = "FrontDark"
 else:
     raise "Mode error!!!"
 txt = os.path.join(path, "report.txt")
@@ -157,10 +165,10 @@ for per_date in date_list:
             lot_path = os.path.join(recipe_path, lot)
             if not os.path.isdir(lot_path):
                 continue
-            adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb = stat(per_date, recipe, lot, "Back", lot_path)
-            adc_reslut_dict_bd, adc_wrong_dict_bd, manual_reslut_dict_bd = stat(per_date, recipe, lot, "BackDark", lot_path)
-            row_bb = txtrow(recipe, lot, "Back", adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb)
-            row_bd = txtrow(recipe, lot, "BackDark", adc_reslut_dict_bd, adc_wrong_dict_bd, manual_reslut_dict_bd)
+            adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb = stat(per_date, recipe, lot, bright, lot_path)
+            adc_reslut_dict_bd, adc_wrong_dict_bd, manual_reslut_dict_bd = stat(per_date, recipe, lot, dark, lot_path)
+            row_bb = txtrow(recipe, lot, bright, adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb)
+            row_bd = txtrow(recipe, lot, dark, adc_reslut_dict_bd, adc_wrong_dict_bd, manual_reslut_dict_bd)
             rows.append(row_bb)
             rows.append(row_bd)
             

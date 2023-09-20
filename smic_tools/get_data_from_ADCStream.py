@@ -4,6 +4,7 @@ import json
 import csv
 import argparse
 import requests
+import random
 
 
 def parse_ADCStream(adc_stream_path):
@@ -133,9 +134,11 @@ def copy_data_from_dir(wafer_path, recipe, lot, FrontOrBack, camera, mode):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='get report')
+    parser.add_argument('--mode', default='Back', type=str)
     parser.add_argument('--imagedata', default=r'F:\ImageData', type=str)
     parser.add_argument('--save_img_path', default=r'D:\Solution\datas\get_report', type=str)
     parser.add_argument('--txt', default=r'D:\Solution\datas\get_report\report.txt', type=str)
+    parser.add_argument('--sample', default=25, type=int)
     args = parser.parse_args()
     return args
 
@@ -144,6 +147,7 @@ def requests_data(recipe, lot, mode, requests_path):
     response = requests.post(url, data=requests_path)
     results = response.text
     results = json.loads(results)
+    print(requests_path)
     if results["errorcode"] != 0:
         print("server error, errorcode:{}, msg: {}".format(results["errorcode"], results["msg"]))
         data_list = []
@@ -166,10 +170,12 @@ def requests_data(recipe, lot, mode, requests_path):
 
 
 args = parse_args()
-
+sample = args.sample
+print("每批次随机取{}片".format(sample))
 from_path = args.imagedata
 save_path = os.path.join(args.save_img_path, "{}_{}_{}_{}".format(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, datetime.datetime.now().hour))
 txt = args.txt
+mode = args.mode
 url = "http://10.0.2.101:3081/ADC/"
 f = open(txt, 'r', encoding='utf-8')
 lines = f.readlines()
@@ -205,12 +211,21 @@ def main():
                 continue
 
             wafer_list = os.listdir(lot_path)
-            for wafer in wafer_list:
+            random.shuffle(wafer_list)
+            for wafer in wafer_list[:sample]:
                 wafer_path = os.path.join(lot_path, wafer)
                 if not os.path.isdir(wafer_path):
                     continue
-                BackBright = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera1_BrightField1", "ADC\\")
-                BackDark = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera3_DarkField1", "ADC\\")
-                requests_data(recipe, lot, "Back", BackBright)
-                requests_data(recipe, lot, "BackDark", BackDark)
+                for i in range(5):
+                    FrontBright = os.path.join(recipe_path, lot, wafer, "Front", "FrontCamera1_BrightField{}".format(i), "ADC\\")
+                    FrontDark = os.path.join(recipe_path, lot, wafer, "Front", "FrontCamera3_DarkField{}".format(i), "ADC\\")
+                    BackBright = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera1_BrightField{}".format(i), "ADC\\")
+                    BackDark = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera3_DarkField{}".format(i), "ADC\\")
+                    if mode == "Front":
+                        requests_data(recipe, lot, "Front", FrontBright)
+                        requests_data(recipe, lot, "FrontDark", FrontDark)
+                    elif mode == "Back":
+                        requests_data(recipe, lot, "Back", BackBright)
+                        requests_data(recipe, lot, "BackDark", BackDark)
+
 main()

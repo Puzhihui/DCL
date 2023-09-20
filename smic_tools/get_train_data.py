@@ -65,6 +65,8 @@ if __name__ == "__main__":
     print('1.start:开始移动数据')
     val_ratio = 0.1
     save_dir = cfg_mode.train_data_path
+    if mode == "Front":
+        save_dir = r'D:\Solution\datas\smic_om_front'
     os.makedirs(save_dir, exist_ok=True)
     smic_data_root = r"D:\Solution\datas\smic_data"
     if mode == "Back":
@@ -73,14 +75,14 @@ if __name__ == "__main__":
         smic_data = os.path.join(smic_data_root, "Front")
     date_list = os.listdir(smic_data)
     all_move_num = dict()
-    all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false'] = 0, 0, 0, 0
+    all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false'], all_move_num['cScratch'] = 0, 0, 0, 0, 0
     for per_date in date_list:
         date_path = os.path.join(smic_data, per_date)
         if not os.path.isdir(date_path): continue
         recipe_list = os.listdir(date_path)
         for recipe in recipe_list:
             move_num = dict()
-            move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false'] = 0, 0, 0, 0
+            move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false'], move_num['cScratch'] = 0, 0, 0, 0, 0
             recipe_path = os.path.join(date_path, recipe)
             if not os.path.isdir(recipe_path): continue
             camera_list = os.listdir(recipe_path)

@@ -21,7 +21,7 @@ elif mode == "Front":
 else:
     raise "Mode error!!!"
 
-multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
+multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'cScratch': "4"}
 
 train_data_path = os.path.join(cfg_mode.train_data_path, "train")
 val_data_path = os.path.join(cfg_mode.train_data_path, "val")
@@ -51,14 +51,17 @@ def glob_img(train_path, f_txt):
     img2txt(other, multi_classes["other"], f_txt)
     false = glob.glob(os.path.join(train_path, "*", "*", "false", "*.bmp"))
     img2txt(false, multi_classes["false"], f_txt)
-    return len(discolor), len(other), len(scratch), len(false)
+    cScratch = glob.glob(os.path.join(train_path, "*", "*", "cScratch", "*.bmp"))
+    if len(cScratch) > 0:
+        img2txt(cScratch, multi_classes["cScratch"], f_txt)
+    return len(discolor), len(other), len(scratch), len(false), len(cScratch)
 
 
 print('2.start:开始生成数据集txt文件')
-discolor, other, scratch, false = glob_img(train_data_path, f_train)
-print("训练集：共{}, discolor:{}, other:{}, scratch:{}, false:{}".format(discolor+other+scratch+false, discolor, other, scratch, false))
-discolor, other, scratch, false = glob_img(val_data_path, f_val)
-print("验证集：共{}, discolor:{}, other:{}, scratch:{}, false:{}".format(discolor+other+scratch+false, discolor, other, scratch, false))
+discolor, other, scratch, false, cScratch = glob_img(train_data_path, f_train)
+print("训练集：共{}, discolor:{}, other:{}, scratch:{}, false:{}, cScratch:{}".format(discolor+other+scratch+false, discolor, other, scratch, false, cScratch))
+discolor, other, scratch, false, cScratch = glob_img(val_data_path, f_val)
+print("验证集：共{}, discolor:{}, other:{}, scratch:{}, false:{}, cScratch:{}".format(discolor+other+scratch+false, discolor, other, scratch, false, cScratch))
 
 f_train.close()
 f_val.close()
