@@ -67,6 +67,7 @@ def adc_wrong_stat(mode_path):
     adc_wrong_dict["false"] = find_adc_wrong_img(mode_path, "false", True)
     adc_wrong_dict["other"] = find_adc_wrong_img(mode_path, "other")
     adc_wrong_dict["scratch"] = find_adc_wrong_img(mode_path, "scratch")
+    adc_wrong_dict["cScratch"] = find_adc_wrong_img(mode_path, "cScratch")
     return adc_wrong_dict
     
 def stat(per_date, recipe, lot, mode, lot_path):
@@ -89,34 +90,18 @@ def write_csv(csv_path, rows, headers):
             f_csv = csv.writer(f)
             f_csv.writerow(headers)
             f_csv.writerows(rows)
-            
+
+
 def txtrow(recipe, lot, mode, adc_reslut_dict, adc_wrong_dict, manual_reslut_dict):
-    defect = adc_reslut_dict["scratch"]+adc_reslut_dict["discolor"]+adc_reslut_dict["other"]+adc_reslut_dict["false"]
-    adc_wrong = adc_wrong_dict["scratch"]+adc_wrong_dict["discolor"]+adc_wrong_dict["other"]+adc_wrong_dict["false"]
-    adc_right = defect - adc_wrong
     row = [recipe, lot, mode, 
-    adc_reslut_dict["scratch"], adc_reslut_dict["discolor"], adc_reslut_dict["other"], adc_reslut_dict["false"],
-    adc_wrong_dict["scratch"], adc_wrong_dict["discolor"], adc_wrong_dict["other"], adc_wrong_dict["false"],
-    manual_reslut_dict["scratch"], manual_reslut_dict["discolor"], manual_reslut_dict["other"], manual_reslut_dict["false"],
-    adc_wrong_dict["false"],
-    defect, adc_right/defect if defect!=0 else "-",
-    # precision
-    (adc_reslut_dict["scratch"]-adc_wrong_dict["scratch"])/adc_reslut_dict["scratch"] if adc_reslut_dict["scratch"]!=0 else "-", 
-    (adc_reslut_dict["discolor"]-adc_wrong_dict["discolor"])/adc_reslut_dict["discolor"] if adc_reslut_dict["discolor"]!=0 else "-", 
-    (adc_reslut_dict["other"]-adc_wrong_dict["other"])/adc_reslut_dict["other"] if adc_reslut_dict["other"]!=0 else "-", 
-    (adc_reslut_dict["false"]-adc_wrong_dict["false"])/adc_reslut_dict["false"] if adc_reslut_dict["false"]!=0 else "-", 
-    #recall
-    (adc_reslut_dict["scratch"]-adc_wrong_dict["scratch"])/manual_reslut_dict["scratch"] if manual_reslut_dict["scratch"]!=0 else "-", 
-    (adc_reslut_dict["discolor"]-adc_wrong_dict["discolor"])/manual_reslut_dict["discolor"]  if manual_reslut_dict["discolor"]!=0 else "-", 
-    (adc_reslut_dict["other"]-adc_wrong_dict["other"])/manual_reslut_dict["other"] if manual_reslut_dict["other"]!=0 else "-", 
-    (adc_reslut_dict["false"]-adc_wrong_dict["false"])/manual_reslut_dict["false"] if manual_reslut_dict["false"]!=0 else "-", 
-    # underkill  rate
-    adc_wrong_dict["false"]/defect if defect!=0 else "-"
+    adc_reslut_dict["scratch"], adc_reslut_dict["cScratch"], adc_reslut_dict["discolor"], adc_reslut_dict["other"], adc_reslut_dict["false"],
+    adc_wrong_dict["scratch"], adc_wrong_dict["cScratch"], adc_wrong_dict["discolor"], adc_wrong_dict["other"], adc_wrong_dict["false"],
+    manual_reslut_dict["scratch"], manual_reslut_dict["cScratch"], manual_reslut_dict["discolor"], manual_reslut_dict["other"], manual_reslut_dict["false"],
     ]
     return row
         
 
-categories = ["discolor", "false", "other", "scratch"]
+categories = ["discolor", "false", "other", "scratch", "cScratch"]
 args = parse_args()
 mode = args.mode
 if mode == "Back":
@@ -173,14 +158,9 @@ for per_date in date_list:
             rows.append(row_bd)
             
 headers = ["recipe", "lot", "mode", 
-    "adc_scratch", "adc_discolor", "adc_other", "adc_false", 
-    "wrong_scratch", "wrong_discolor", "wrong_other", "wrong_false", 
-    "manual_scratch", "manual_discolor", "manual_other", "manual_false", 
-    "false2defect",
-    "缺陷总数", "准确率",
-    "pre_scratch", "pre_discolor", "pre_other", "pre_false", 
-    "re_scratch", "re_discolor", "re_other", "re_false", 
-    "underkillRate"]
+    "adc_scratch", "adc_cScratch", "adc_discolor", "adc_other", "adc_false",
+    "wrong_scratch", "wrong_cScratch", "wrong_discolor", "wrong_other", "wrong_false",
+    "manual_scratch", "manual_cScratch", "manual_discolor", "manual_other", "manual_false"]
 csv_path = os.path.join(path, "{}_{}_{}_{}_{}_report.csv".format(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, datetime.datetime.now().hour, datetime.datetime.now().minute))
 print(len(rows))
 write_csv(csv_path, rows, headers)
