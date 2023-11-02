@@ -64,9 +64,9 @@ front_path = r'D:\Solution\datas\smic_om_front'
 by_recipe_path = r'D:\Solution\datas\smic_om_front_by_recipe'
 front_train_save_path = os.path.join(by_recipe_path, 'train')
 front_val_save_path = os.path.join(by_recipe_path, 'val')
-if os.path.exists(front_train_save_path):
-    shutil.rmtree(front_train_save_path)
-if os.path.exists(front_val_save_path):
-    shutil.rmtree(front_val_save_path)
+# if os.path.exists(front_train_save_path):
+#     shutil.rmtree(front_train_save_path)
+# if os.path.exists(front_val_save_path):
+#     shutil.rmtree(front_val_save_path)
 database_by_recipe(os.path.join(front_path, "train"), front_train_save_path)
 database_by_recipe(os.path.join(front_path, "val"), front_val_save_path)

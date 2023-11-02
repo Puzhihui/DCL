@@ -56,7 +56,8 @@ def parse_ManualResult(manual_path):
         # print(aDCDataCollection[0]["Imagedata"]["label"])
         ADCBin = bincode_str2int_dict[aDCDataCollection[0]["Imagedata"]["label"]]
         adc_img_path = aDCDataCollection[0]["Imagedata"]["image_name"]
-        manual_result[adc_img_path] = {"ADCBin": ADCBin, "BinCode": BinCode, "adc_result": adc_result, "DefectImagePath": DefectImagePath}
+        manual_result[adc_img_path] = {"ADCBin": ADCBin, "BinCode": BinCode, "adc_result": adc_result,
+                                       "DefectImagePath": DefectImagePath}
     return manual_result
 
 
@@ -74,7 +75,7 @@ def stat_mode(update_time_int, recipe, lot, lot_path, FrontOrBack, camera):
 
         manual_path = os.path.join(wafer_path, FrontOrBack, "ManualResult", "UserIdentifyADCResult.json")
         manual_result = parse_ManualResult(manual_path)
-        #print(manual_result)
+        # print(manual_result)
         if len(adc_result) == 0 or len(manual_result) == 0:
             continue
 
@@ -88,7 +89,8 @@ def stat_mode(update_time_int, recipe, lot, lot_path, FrontOrBack, camera):
             manual_stat[manual_label] += 1
             print("m: {}, adc: {}".format(manual_label, adc_label))
             copy_flag = False
-            save_path = os.path.join(save_img_path, str(update_time_int), recipe, lot, wafer, FrontOrBack, camera, manual_label)
+            save_path = os.path.join(save_img_path, str(update_time_int), recipe, lot, wafer, FrontOrBack, camera,
+                                     manual_label)
             if manual_label != adc_label:
                 ADC_wrong_stat[adc_label] += 1
                 if save_adc_wrong_img:
@@ -113,15 +115,17 @@ def stat_mode(update_time_int, recipe, lot, lot_path, FrontOrBack, camera):
                     continue
 
     return ADC_stat, ADC_wrong_stat, manual_stat
-            
+
+
 def copy_data_from_ADCStream(recipe, lot, FrontOrBack, camera):
-	adc_stream = os.path.join(wafer_path, FrontOrBack, camera, "ADC", "ADCStream.json")
-	adc_result = parse_ADCStream(adc_stream)
-	for img_path, per_adc_result in adc_result.items():
-	    label = per_adc_result["label"]
-	    save_img_path = os.path.join(save_path, recipe, lot, FrontOrBack, camera, label)
-	    os.makedirs(save_img_path, exist_ok=True)
-	    shutil.copy2(img_path,save_img_path)
+    adc_stream = os.path.join(wafer_path, FrontOrBack, camera, "ADC", "ADCStream.json")
+    adc_result = parse_ADCStream(adc_stream)
+    for img_path, per_adc_result in adc_result.items():
+        label = per_adc_result["label"]
+        save_img_path = os.path.join(save_path, recipe, lot, FrontOrBack, camera, label)
+        os.makedirs(save_img_path, exist_ok=True)
+        shutil.copy2(img_path, save_img_path)
+
 
 def copy_data_from_dir(wafer_path, recipe, lot, FrontOrBack, camera, mode):
     img_list = glob.glob(os.path.join(wafer_path, FrontOrBack, camera, "*", "*.bmp"))
@@ -159,12 +163,14 @@ def requests_data(recipe, lot, mode, requests_path):
         confidence = data["confidence"]
         label = data["label"]
         # print("{}:\tpred_label:{}\tconfidence:{}\t".format(basename, label, confidence))
-        save_img_path = os.path.join(save_path, recipe, lot, mode, label)
+        # save_img_path = os.path.join(save_path, recipe, lot, mode, label)
+        save_img_path = os.path.join(save_path, recipe, lot, label)
         os.makedirs(save_img_path, exist_ok=True)
         try:
             shutil.copy2(image_name, save_img_path)
             basename = os.path.basename(image_name)
-            os.rename(os.path.join(save_img_path, basename), os.path.join(save_img_path, "{}@{}".format(label, basename)))
+            os.rename(os.path.join(save_img_path, basename),
+                      os.path.join(save_img_path, "{}@{}".format(label, basename)))
         except:
             continue
 
@@ -173,7 +179,9 @@ args = parse_args()
 sample = args.sample
 print("每批次随机取{}片".format(sample))
 from_path = args.imagedata
-save_path = os.path.join(args.save_img_path, "{}_{}_{}_{}".format(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, datetime.datetime.now().hour))
+save_path = os.path.join(args.save_img_path,
+                         "{}_{}_{}_{}".format(datetime.datetime.now().year, datetime.datetime.now().month,
+                                              datetime.datetime.now().day, datetime.datetime.now().hour))
 txt = args.txt
 mode = args.mode
 url = "http://10.0.2.101:3081/ADC/"
@@ -183,11 +191,17 @@ f.close()
 recipe_dict = dict()
 for line in lines:
     line = line.replace("\n", "")
-    recipe, lot = line.split('\t')[0]+"_VSI_OM", line.split('\t')[1]
+    recipe, lot = line.split('\t')[0] + "_VSI_OM", line.split('\t')[1]
+    recipe_test, lot_test = line.split('\t')[0] + "_VSI_OM-Test", line.split('\t')[1]
     print(recipe, lot)
     if recipe not in recipe_dict.keys():
         recipe_dict[recipe] = []
     recipe_dict[recipe].append(lot)
+
+    if recipe_test not in recipe_dict.keys():
+        recipe_dict[recipe_test] = []
+    recipe_dict[recipe_test].append(lot_test)
+
 
 def main():
     recipe_list = os.listdir(from_path)
@@ -217,15 +231,20 @@ def main():
                 if not os.path.isdir(wafer_path):
                     continue
                 for i in range(5):
-                    FrontBright = os.path.join(recipe_path, lot, wafer, "Front", "FrontCamera1_BrightField{}".format(i), "ADC\\")
-                    FrontDark = os.path.join(recipe_path, lot, wafer, "Front", "FrontCamera3_DarkField{}".format(i), "ADC\\")
-                    BackBright = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera1_BrightField{}".format(i), "ADC\\")
-                    BackDark = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera3_DarkField{}".format(i), "ADC\\")
+                    FrontBright = os.path.join(recipe_path, lot, wafer, "Front", "FrontCamera1_BrightField{}".format(i),
+                                               "ADC\\")
+                    FrontDark = os.path.join(recipe_path, lot, wafer, "Front", "FrontCamera3_DarkField{}".format(i),
+                                             "ADC\\")
+                    BackBright = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera1_BrightField{}".format(i),
+                                              "ADC\\")
+                    BackDark = os.path.join(recipe_path, lot, wafer, "Back", "BackCamera3_DarkField{}".format(i),
+                                            "ADC\\")
                     if mode == "Front":
                         requests_data(recipe, lot, "Front", FrontBright)
                         requests_data(recipe, lot, "FrontDark", FrontDark)
                     elif mode == "Back":
                         requests_data(recipe, lot, "Back", BackBright)
                         requests_data(recipe, lot, "BackDark", BackDark)
+
 
 main()

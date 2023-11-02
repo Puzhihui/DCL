@@ -137,7 +137,7 @@ class LoadConfig(object):
             self.dataset = args.dataset
             self.rawdata_root = r'D:\Solution\datas\smic_om_front_by_recipe'
             self.anno_root = './datasets/smic_om_front'
-            self.numcls = 4
+            self.numcls = 6
         elif args.dataset == 'smic_om_front_2':
             self.dataset = args.dataset
             self.rawdata_root = r'D:\Solution\datas\smic_om_front_2'

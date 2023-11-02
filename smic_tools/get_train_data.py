@@ -8,7 +8,7 @@ from config import smic_back_online, smic_front_online
 
 def parse_args():
     parser = argparse.ArgumentParser(description='replace online model')
-    parser.add_argument('--mode', default='Back', type=str)
+    parser.add_argument('--mode', default='Front', type=str)
     args = parser.parse_args()
     return args
 
@@ -60,6 +60,17 @@ def get_train_data(data_path, save_path, ratio_val):
     return train_images
 
 
+all_move_num = {
+    'discolor': 0,
+    'other': 0,
+    'scratch': 0,
+    'false': 0,
+    'cScratch': 0,
+    'PASD': 0,
+    'SINR': 0
+}
+move_tmp_num = all_move_num
+
 if __name__ == "__main__":
     print('-------------------------------------------------')
     print('1.start:开始移动数据')
@@ -75,14 +86,14 @@ if __name__ == "__main__":
         smic_data = os.path.join(smic_data_root, "Front")
     date_list = os.listdir(smic_data)
     all_move_num = dict()
-    all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false'], all_move_num['cScratch'] = 0, 0, 0, 0, 0
+    # all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false'], all_move_num['cScratch'] = 0, 0, 0, 0, 0
     for per_date in date_list:
         date_path = os.path.join(smic_data, per_date)
         if not os.path.isdir(date_path): continue
         recipe_list = os.listdir(date_path)
         for recipe in recipe_list:
-            move_num = dict()
-            move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false'], move_num['cScratch'] = 0, 0, 0, 0, 0
+            move_num = move_tmp_num
+            # move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false'], move_num['cScratch'] = 0, 0, 0, 0, 0
             recipe_path = os.path.join(date_path, recipe)
             if not os.path.isdir(recipe_path): continue
             camera_list = os.listdir(recipe_path)
@@ -99,6 +110,8 @@ if __name__ == "__main__":
                     if category not in all_move_num:
                         all_move_num[category] = 0
                     all_move_num[category] += len(img_list)
-            print('{}: discolor:{}张, other:{}张, scratch:{}张, false:{}张'.format(recipe, move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false']))
-    print('合计: discolor:{}张, other:{}张, scratch:{}张, false:{}张'.format(all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false']))
+            # print('{}: discolor:{}张, other:{}张, scratch:{}张, false:{}张'.format(recipe, move_num['discolor'], move_num['other'], move_num['scratch'], move_num['false']))
+            print(move_num)
+    # print('合计: discolor:{}张, other:{}张, scratch:{}张, false:{}张'.format(all_move_num['discolor'], all_move_num['other'], all_move_num['scratch'], all_move_num['false']))
+    print(all_move_num)
     print('-------------------------------------------------')

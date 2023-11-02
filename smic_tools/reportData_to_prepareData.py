@@ -22,7 +22,7 @@ def get_img_list(mode_path):
         basename = os.path.basename(img)
         op_label = img.split('\\')[-2]
         try:
-            adc_label = basename.split()
+            adc_label = basename.split('@')[0]
         except:
             continue
 
@@ -31,44 +31,43 @@ def get_img_list(mode_path):
                 overkill_img_list.append([img, false_string])
             else:
                 good_img_list.append([img, false_string])
-        elif op_label in [scratch_string, discolor_string, other_string]:
+        elif op_label in [scratch_string, discolor_string, other_string, pasd_string, sinr_string]:
             defect_img_list.append([img, op_label])
         else:
             continue
     random.shuffle(overkill_img_list)
     random.shuffle(good_img_list)
-    return defect_img_list, overkill_img_list+good_img_list
+    return defect_img_list, overkill_img_list, good_img_list
 
 
-def move_img_list(camera, defect_img_list, first_false_img_list, second_false_img_list):
+def move_img_list(recipe, defect_img_list, overkill_imgs, false_img_list):
     defect_num = len(defect_img_list)
-    if defect_num == 0:
-        return first_false_img_list, second_false_img_list
+    # if defect_num == 0:
+    #     return first_false_img_list, second_false_img_list
 
     today = datetime.datetime.now().strftime('%Y%m%d')
     for defect_img in defect_img_list:
         img_path, op_label = defect_img[0], defect_img[1]
-        save_img_path = os.path.join(save_path, today, "Front_{}".format(today), "Front", op_label)
+        save_img_path = os.path.join(save_path, today, "Front_{}".format(today), recipe, op_label)
         os.makedirs(save_img_path, exist_ok=True)
         shutil.copy2(img_path, save_img_path)
         # os.remove(img_path)
 
-    if len(first_false_img_list) >= defect_num:
-        false_img_list = first_false_img_list[:defect_num]
-        first_img_list = first_false_img_list[defect_num:]
-        second_img_list = second_false_img_list
-    else:
-        need_num = defect_num - len(first_false_img_list)
-        false_img_list = first_false_img_list + second_false_img_list[:need_num]
-        first_img_list = []
-        second_img_list = second_false_img_list[need_num:]
-    for img in false_img_list:
-        img_path, op_label = img[0], img[1]
-        save_img_path = os.path.join(save_path, today, "Front_{}".format(today), "Front", op_label)
+    for overkill in overkill_imgs:
+        img_path, op_label = overkill[0], overkill[1]
+        save_img_path = os.path.join(save_path, today, "Front_{}".format(today), recipe, op_label)
         os.makedirs(save_img_path, exist_ok=True)
         shutil.copy2(img_path, save_img_path)
-        # os.remove(img_path)
-    return first_img_list, second_img_list
+        defect_num -= 1
+
+    if defect_num > 0:
+        for img in false_img_list[:defect_num]:
+            img_path, op_label = img[0], img[1]
+            save_img_path = os.path.join(save_path, today, "Front_{}".format(today), recipe, op_label)
+            os.makedirs(save_img_path, exist_ok=True)
+            shutil.copy2(img_path, save_img_path)
+            os.remove(img_path)
+    return True
 
 
 args = parse_args()
@@ -88,6 +87,8 @@ false_string = 'false'
 scratch_string = 'scratch'
 discolor_string = 'discolor'
 other_string = 'other'
+pasd_string = 'PASD'
+sinr_string = 'SINR'
 
 
 def main():
@@ -109,13 +110,12 @@ def main():
                 lot_path = os.path.join(recipe_path, lot)
                 if not os.path.isdir(lot_path):
                     continue
-
-                front = os.path.join(lot_path, "Front")
-                frontDark = os.path.join(lot_path, "FrontDark")
-                bright_defect_img_list, bright_false_img_list = get_img_list(front)
-                dark_defect_img_list, dark_false_img_list = get_img_list(frontDark)
-                bright_false_img_list, dark_false_img_list = move_img_list("Front", bright_defect_img_list, bright_false_img_list, dark_false_img_list)
-                dark_false_img_list, bright_false_img_list = move_img_list("FrontDark", dark_defect_img_list, dark_false_img_list, bright_false_img_list)
+                print(date_int, recipe, lot)
+                # frontDark = os.path.join(lot_path, "FrontDark")
+                bright_defect_img_list, bright_overkill_imgs, bright_false_img_list = get_img_list(lot_path)
+                # dark_defect_img_list, dark_overkill_imgs, dark_false_img_list = get_img_list(frontDark)
+                move_img_list(recipe, bright_defect_img_list, bright_overkill_imgs, bright_false_img_list)
+                # move_img_list("FrontDark", dark_defect_img_list, dark_overkill_imgs, dark_false_img_list)
 
 
 if __name__ == '__main__':
