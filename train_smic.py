@@ -101,8 +101,10 @@ args = parse_args()
 mode = args.mode
 if mode == "Back":
     cfg_mode = smic_back_online()
+    args.data = "smic_om_back_5"
 elif mode == "Front":
     cfg_mode = smic_front_online()
+    args.data = "smic_om_front"
 else:
     raise "Mode error!!!"
 
