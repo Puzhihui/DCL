@@ -72,8 +72,8 @@ def stat_lot_wafer(lot_path):
     for img in img_list:
         wafer = os.path.basename(img).split('_')[-2].split('-')[-1]
         wafer_dict.add(wafer)
-    print(lot_path)
-    print(sorted(list(wafer_dict)))
+    # print(lot_path)
+    # print(sorted(list(wafer_dict)))
     return len(list(wafer_dict))
 
 
