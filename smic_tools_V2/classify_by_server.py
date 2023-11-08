@@ -10,7 +10,7 @@ from utils import get_recipe_lot
 
 def parse_args():
     parser = argparse.ArgumentParser(description='get report')
-    parser.add_argument('--mode', default='Back', type=str)
+    parser.add_argument('--mode', default='Front', type=str)
     parser.add_argument('--imagedata', default=r'F:\ImageData', type=str)
     parser.add_argument('--img_path', default=r'D:\Solution\datas\get_report', type=str)
     parser.add_argument('--is_all_recipe', action='store_true')
@@ -68,21 +68,29 @@ def infer_by_server(args, pending_recipe_dict):
                         if "@" in basename:
                             img_old_label = basename.split('@')[0]
                             basename_no_label = basename.replace("{}@".format(img_old_label), "")
+                            img_no_label = os.path.join(os.path.dirname(img), basename_no_label)
+                            os.rename(img, img_no_label)
                             dst_img_name = "{}@{}".format(new_label, basename_no_label)
                         else:
+                            img_no_label = img
                             dst_img_name = "{}@{}".format(new_label, basename)
                         save_img_path = os.path.join(lot_path, new_label)
+                        # print(save_img_path)
                         os.makedirs(save_img_path, exist_ok=True)
-                        try:
-                            shutil.copy2(img, save_img_path)
-                            os.rename(os.path.join(save_img_path, basename), os.path.join(save_img_path, dst_img_name))
-                        except:
-                            continue
+                        if not os.path.samefile(os.path.dirname(img_no_label), save_img_path):
+                            if os.path.exists(os.path.join(save_img_path, os.path.basename(img_no_label))):
+                                os.remove(os.path.join(save_img_path, os.path.basename(img_no_label)))
+                            shutil.copy2(img_no_label, save_img_path)
+                            os.remove(img_no_label)
+                            os.rename(os.path.join(save_img_path, os.path.basename(img_no_label)), os.path.join(save_img_path, dst_img_name))
+                        else:
+                            os.rename(img_no_label, os.path.join(save_img_path, dst_img_name))
                     else:
-                        save_img_path = os.path.join(args.img_path, args.mode, "pending_review", "Unknow", recipe, lot, old_label)
+                        save_img_path = os.path.join(pending_review_path, "Unknow", recipe, lot, old_label)
                         os.makedirs(save_img_path, exist_ok=True)
                         try:
                             shutil.copy2(img, save_img_path)
+                            os.remove(img)
                         except:
                             continue
 

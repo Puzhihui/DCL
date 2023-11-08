@@ -2,12 +2,14 @@ import os
 import csv
 
 
-def get_recipe_lot(args):
-    pending_review_path = os.path.join(args.img_path, args.mode, "pending_review")
+def get_recipe_lot(args, path=None):
+    if path is None:
+        path = os.path.join(args.img_path, args.mode, "pending_review")
+    # pending_review_path = os.path.join(args.img_path, args.mode, "pending_review")
     pending_recipe_dict = dict()
     if args.is_all_recipe:
-        for recipe in os.listdir(pending_review_path):
-            recipe_path = os.path.join(pending_review_path, recipe)
+        for recipe in os.listdir(path):
+            recipe_path = os.path.join(path, recipe)
             if recipe in ["underkill", "reviewed"] or not os.path.isdir(recipe_path):
                 continue
             if recipe not in pending_recipe_dict.keys():

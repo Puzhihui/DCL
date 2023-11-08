@@ -70,9 +70,10 @@ def stat_lot_wafer(lot_path):
     img_list = glob.glob(os.path.join(lot_path, "*", "*.bmp"))
     wafer_dict = set()
     for img in img_list:
-        wafer = os.path.basename(img).split('_')[4].split('-')[0]
+        wafer = os.path.basename(img).split('_')[-2].split('-')[-1]
         wafer_dict.add(wafer)
-
+    print(lot_path)
+    print(sorted(list(wafer_dict)))
     return len(list(wafer_dict))
 
 
@@ -131,7 +132,8 @@ headers = ["recipe", "lot_num", "wafer_num",
 if __name__ == '__main__':
     args = parse_args()
     print("Start stat ACC, PlEASE CHECK, model: {}, is_all_recipes: {}".format(args.mode, args.is_all_recipe))
-    target_recipe_dict = get_recipe_lot(args)
+    target_recipe_dict = get_recipe_lot(args, os.path.join(args.img_path, args.mode, "reviewed"))
+    # print(target_recipe_dict)
     rows_all = stat_recipe(os.path.join(args.img_path, args.mode, "reviewed"), target_recipe_dict)
     csv_path = os.path.join(os.path.join(args.img_path, args.mode),
                             "{}_{}_{}_{}_{}_report.csv".format(datetime.datetime.now().year,

@@ -191,16 +191,15 @@ f.close()
 recipe_dict = dict()
 for line in lines:
     line = line.replace("\n", "")
-    recipe, lot = line.split('\t')[0] + "_VSI_OM", line.split('\t')[1]
-    recipe_test, lot_test = line.split('\t')[0] + "_VSI_OM-Test", line.split('\t')[1]
+    recipe, lot = line.split('\t')[0], line.split('\t')[1]
     print(recipe, lot)
-    if recipe not in recipe_dict.keys():
-        recipe_dict[recipe] = []
-    recipe_dict[recipe].append(lot)
-
-    if recipe_test not in recipe_dict.keys():
-        recipe_dict[recipe_test] = []
-    recipe_dict[recipe_test].append(lot_test)
+    for recipe_test in ["_VSI_OM-Test", "_VSI_OM-Test_nopattern", "_VSI_OM-Test_Checkback",
+                        "_VSI_OM_nopattern", "_VSI_OM_Checkback", "_VSI_OM-bevel"]:
+        recipe_test, lot_test = line.split('\t')[0] + recipe_test, line.split('\t')[1]
+        print(recipe_test, lot)
+        if recipe_test not in recipe_dict.keys():
+            recipe_dict[recipe_test] = []
+        recipe_dict[recipe_test].append(lot)
 
 
 def main():
