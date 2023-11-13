@@ -101,13 +101,13 @@ args = parse_args()
 mode = args.mode
 if mode == "Back":
     cfg_mode = smic_back_online()
-    args.data = "smic_om_back_5"
+    args.dataset = "smic_om_back_5"
 elif mode == "Front":
     cfg_mode = smic_front_online()
-    args.data = "smic_om_front"
+    args.dataset = "smic_om_front"
 else:
     raise "Mode error!!!"
-
+print(mode)
 if __name__ == '__main__':
     # ========================================================日志模块========================================================
     log_path = r"D:\Solution\log\train_model" if platform.system().lower() == 'windows' else './logs'

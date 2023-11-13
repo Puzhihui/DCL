@@ -120,10 +120,10 @@ def get_mode_false_imgs(recipe_path, need_num, mode):
 
 
 def move_to_dataset(recipe, from_path, dataset_path, bright_category_dict, dark_category_dict):
-    recipe_generate = "_{}generate".format(recipe)
+    recipe_generate = "{}_generate".format(recipe)
     for label in os.listdir(from_path):
         label_path = os.path.join(from_path, label)
-        if not os.path.isdir(label_path) or label not in bright_category_dict.keys() or label not in dark_category_dict.keys():
+        if not os.path.isdir(label_path):
             continue
         img_list = glob.glob(os.path.join(label_path, "*.bmp"))
         img_list_num = len(img_list)
@@ -178,6 +178,7 @@ def main(args, save_path, defect_path, bright_category_dict, dark_category_dict)
         # 转移到训练集
         dataset_path = args.dataset_path
         move_to_dataset(recipe, save_front_path, dataset_path, bright_category_dict, dark_category_dict)
+        move_to_dataset(recipe, save_frontdark_path, dataset_path, bright_category_dict, dark_category_dict)
 
 
 def parse_args():
@@ -205,7 +206,7 @@ if __name__ == '__main__':
         "scratch": args.scratch_bright, "discolor": args.discolor_bright, "other": args.other_bright,
         "SINR": args.SINR_bright, "PASD": args.PASD_bright}
     dark_category_dict = {"scratch": args.scratch_dark, "other": args.other_dark}
-    save_path = os.path.join(args.save_path, datetime.now().date().strftime("%Y%m%d"))
-    os.makedirs(save_path)
+    save_path = os.path.join(args.save_path, datetime.datetime.now().date().strftime("%Y%m%d"))
+    os.makedirs(save_path, exist_ok=True)
     defect_path = args.defect_path
     main(args, save_path, defect_path, bright_category_dict, dark_category_dict)
