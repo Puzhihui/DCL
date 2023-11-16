@@ -176,9 +176,20 @@ def main(args, save_path, defect_path, bright_category_dict, dark_category_dict)
         user_input1 = input("缺陷数据已生成,请检查数据，完成后输入任意字符回车:")
 
         # 转移到训练集
-        dataset_path = args.dataset_path
-        move_to_dataset(recipe, save_front_path, dataset_path, bright_category_dict, dark_category_dict)
-        move_to_dataset(recipe, save_frontdark_path, dataset_path, bright_category_dict, dark_category_dict)
+        user_input1 = input("是否加入训练集? 请输入 Y or N:")
+        while True:
+            if user_input1 == "N" or user_input1 == "Y":
+                break
+            else:
+                user_input1 = input("输入错误！请输入 Y or N:")
+        if user_input1 == "Y":
+            dataset_path = args.dataset_path
+            move_to_dataset(recipe, save_front_path, dataset_path, bright_category_dict, dark_category_dict)
+            move_to_dataset(recipe, save_frontdark_path, dataset_path, bright_category_dict, dark_category_dict)
+            print("已加入训练集！")
+        else:
+            print("未加入训练集！")
+        print('\n\n\n\n')
 
 
 def parse_args():
