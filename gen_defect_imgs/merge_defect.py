@@ -136,8 +136,8 @@ def move_to_dataset(recipe, from_path, dataset_path, bright_category_dict, dark_
             val_num = math.ceil(img_list_num * 0.2)
         else:
             continue
-        copy_val_num = copy_imgs(os.path.join(dataset_path, "val", recipe_generate, label), img_list[:val_num], remove_org=True)
-        copy_train_num = copy_imgs(os.path.join(dataset_path, "train", recipe_generate, label), img_list[val_num:], remove_org=True)
+        copy_val_num = copy_imgs(os.path.join(dataset_path, "val", recipe_generate, 'Front', label), img_list[:val_num], remove_org=True)
+        copy_train_num = copy_imgs(os.path.join(dataset_path, "train", recipe_generate, 'Front', label), img_list[val_num:], remove_org=True)
         print("{} {}: 训练集添加{}张, 验证集添加{}张".format(recipe_generate, label, copy_train_num, copy_val_num))
 
 def main(args, save_path, defect_path, bright_category_dict, dark_category_dict):
@@ -171,10 +171,17 @@ def main(args, save_path, defect_path, bright_category_dict, dark_category_dict)
         # 生成缺陷图
         bright_imgs = glob.glob(os.path.join(save_front_path, "false", "*.bmp"))
         dark_imgs = glob.glob(os.path.join(save_frontdark_path, "false", "*.bmp"))
+        if len(glob.glob(os.path.join(save_front_path, "false", "*.bmp"))) == 0 and len(glob.glob(os.path.join(save_frontdark_path, "false", "*.bmp"))) == 0:
+            print("未获取到false图")
+            print('\n\n\n\n')
+            continue
         gen_defect_by_mode(bright_imgs, os.path.join(defect_path, "Front"), bright_category_dict, save_front_path)
         gen_defect_by_mode(dark_imgs, os.path.join(defect_path, "FrontDark"), dark_category_dict, save_frontdark_path)
         user_input1 = input("缺陷数据已生成,请检查数据，完成后输入任意字符回车:")
-
+        if len(glob.glob(os.path.join(save_front_path, "false", "*.bmp"))) == 0 and len(glob.glob(os.path.join(save_frontdark_path, "false", "*.bmp"))) == 0:
+            print("未获取到false图")
+            print('\n\n\n\n')
+            continue
         # 转移到训练集
         user_input1 = input("是否加入训练集? 请输入 Y or N:")
         while True:

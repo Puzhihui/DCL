@@ -193,8 +193,8 @@ for line in lines:
     line = line.replace("\n", "")
     recipe, lot = line.split('\t')[0], line.split('\t')[1]
     print(recipe, lot)
-    for recipe_test in ["_VSI_OM-Test", "_VSI_OM-Test_nopattern", "_VSI_OM-Test_Checkback",
-                        "_VSI_OM_nopattern", "_VSI_OM_Checkback", "_VSI_OM-bevel"]:
+    for recipe_test in ["_VSI_OM", "_VSI_OM-Test", "_VSI_OM-Test_nopattern", "_VSI_OM-Test_Checkback",
+                        "_VSI_OM_nopattern", "_VSI_OM_Checkback", "_VSI_OM-bevel", "_VSI_OM_bevel"]:
         recipe_test, lot_test = line.split('\t')[0] + recipe_test, line.split('\t')[1]
         print(recipe_test, lot)
         if recipe_test not in recipe_dict.keys():
