@@ -120,7 +120,15 @@ def train(Config,
             gamma_ = 0.01 if Config.dataset == 'STCAR' or Config.dataset == 'AIR' else 1
             # labels_swap = labels_swap.type(torch.int64)
             if Config.use_dcl:
-                swap_loss = get_ce_loss(outputs[1], labels_swap) * beta_
+                if Config.use_sagan:
+                    d_out = outputs[1]
+                    d_out_real = d_out[0:15:2]
+                    d_out_fake = d_out[1:16:2]
+                    d_loss_real = torch.nn.ReLU()(1.0 - d_out_real).mean()
+                    d_loss_fake = torch.nn.ReLU()(1.0 + d_out_fake).mean()
+                    swap_loss = d_loss_real + d_loss_fake
+                else:
+                    swap_loss = get_ce_loss(outputs[1], labels_swap) * beta_
                 loss += swap_loss
                 law_loss = add_loss(outputs[2], swap_law) * gamma_
                 loss += law_loss

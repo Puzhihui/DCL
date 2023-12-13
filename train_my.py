@@ -25,7 +25,8 @@ import pdb
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = '1, 2, 3'
 
-# nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
+# DCL model：nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --cls_mul --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
+# DCL model use sagan：nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --cls_2 --use_sagan --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 
 # parameters setting
 def parse_args():
@@ -71,7 +72,9 @@ def parse_args():
     parser.add_argument('--cls_2', dest='cls_2',
                         action='store_true')
     parser.add_argument('--cls_mul', dest='cls_mul',
-                        default=True, action='store_true')
+                        action='store_true')
+    parser.add_argument('--use_sagan', dest='use_sagan',
+                        action='store_true')
     parser.add_argument('--swap_num', default=[7, 7],
                     nargs=2, metavar=('swap1', 'swap2'),
                     type=int, help='specify a range')
@@ -94,6 +97,7 @@ if __name__ == '__main__':
     print(args, flush=True)
     Config = LoadConfig(args, 'train')
     Config.save_dir = args.save_dir
+    Config.use_sagan = args.use_sagan
     os.makedirs(Config.save_dir, exist_ok=True)
     Config.cls_2 = args.cls_2
     Config.cls_2xmul = args.cls_mul

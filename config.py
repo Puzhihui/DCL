@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import torch
 
-from transforms import transforms
+# from transforms import transforms
 from cvtorchvision import cvtransforms
 
 # pretrained model checkpoints
@@ -42,7 +42,7 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
         #     # transforms.RandomRotation(degrees=15),
         #     cvtransforms.CenterCrop((crop_reso, crop_reso)),
         # ]),
-        'adc_oi_resize_aug': transforms.Compose([         # train 原图resize
+        'adc_oi_resize_aug': cvtransforms.Compose([         # train 原图resize
             cvtransforms.RandomVerticalFlip(0.5),
             cvtransforms.RandomHorizontalFlip(0.5),
             # # transforms.ColorJitter(0.2, 0.1, 0.1, 0.01),
@@ -58,7 +58,7 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
             cvtransforms.ToTensor(),
             cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]),
-        'adc_val_oi_resize_totensor': transforms.Compose([    # val 原图resize
+        'adc_val_oi_resize_totensor': cvtransforms.Compose([    # val 原图resize
             cvtransforms.Resize((crop_reso, crop_reso)),
             cvtransforms.ToTensor(),
             cvtransforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -197,6 +197,7 @@ class LoadConfig(object):
         self.backbone = args.backbone
 
         self.use_dcl = True
+        self.use_sagan = False
         self.use_backbone = False if self.use_dcl else True
         self.use_Asoftmax = False
         self.use_focal_loss = False

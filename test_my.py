@@ -27,22 +27,22 @@ from utils.test_tool import set_text, save_multi_img, cls_base_acc
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 # python test_my.py --data jssi_photo --use_center --use_resize  --test_txt ./test.txt --save ./model.pth
 
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
     parser.add_argument('--data', dest='dataset',
-                        default='jssi_photo', type=str)
+                        default='jssi_photo_center_resize', type=str)
     parser.add_argument('--backbone', dest='backbone',
                         default='efficientnet-b4', type=str)
     parser.add_argument('--test_txt', dest='test_txt',
-                        default='', type=str)
+                        default='/data3/pzh/project/ADC/DCL/datasets/jssi_photo/jssi_photo_center_resize/test1.txt', type=str)
     parser.add_argument('--use_center', dest='use_center',
-                        default=False,  action='store_true')
+                        default=True,  action='store_true')
     parser.add_argument('--use_resize', dest='use_resize',
-                        default=False,  action='store_true')
+                        default=True,  action='store_true')
     parser.add_argument('--b', dest='batch_size',
                         default=64, type=int)
     parser.add_argument('--nw', dest='num_workers',
@@ -50,7 +50,7 @@ def parse_args():
     parser.add_argument('--ver', dest='version',
                         default='val', type=str)
     parser.add_argument('--save', dest='resume',
-                        default=None, type=str)
+                        default=r'/data3/pzh/project/ADC/DCL/net_model/jssi_photo/photo_center_resize/opencv_20230412/_4126_jssi_photo_center_resize/best_weights_2_4731_0.9646.pth', type=str)
     parser.add_argument('--size', dest='resize_resolution',
                         default=512, type=int)
     parser.add_argument('--crop', dest='crop_resolution',
@@ -235,7 +235,9 @@ def main_CenterAndResize():
                 inputs_center = Variable(inputs_center.cuda())
                 labels_center = Variable(torch.from_numpy(np.array(labels_center)).long().cuda())
                 outputs_center = model(inputs_center)
+
                 outputs_pred_center = outputs_center[0] + outputs_center[1][:, 0:Config.numcls] + outputs_center[1][:, Config.numcls:2 * Config.numcls]
+                print(outputs_pred_center)
                 # outputs_pred_center = outputs_center[0]
                 top3_val_center, top3_pos_center = torch.topk(outputs_pred_center, 2)
 
@@ -253,6 +255,7 @@ def main_CenterAndResize():
                 labels_resize = Variable(torch.from_numpy(np.array(labels_resize)).long().cuda())
                 outputs_resize = model(inputs_resize)
                 outputs_pred_resize = outputs_resize[0] + outputs_resize[1][:, 0:Config.numcls] + outputs_resize[1][:, Config.numcls:2 * Config.numcls]
+                print(outputs_pred_resize)
                 # outputs_pred_resize = outputs_resize[0]
                 top3_val_resize, top3_pos_resize = torch.topk(outputs_pred_resize, 2)
                 if args.version == 'val' or args.version == 'test':

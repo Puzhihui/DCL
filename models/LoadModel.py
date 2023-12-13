@@ -10,6 +10,8 @@ from config import pretrained_model, customize_model
 import pdb
 
 from .EfficientNet_my import EfficientNet
+from .spectral import SpectralNorm
+from .sagan_models import Self_Attn
 class Efficientb4(nn.Module):
     def __init__(self, num_classes=2):
         super().__init__()
@@ -37,6 +39,7 @@ class MainModel(nn.Module):
     def __init__(self, config):
         super(MainModel, self).__init__()
         self.use_dcl = config.use_dcl
+        self.use_sagan = config.use_sagan
         self.num_classes = config.numcls
         self.backbone_arch = config.backbone
         self.use_Asoftmax = config.use_Asoftmax
@@ -87,8 +90,46 @@ class MainModel(nn.Module):
         if self.use_Asoftmax:
             self.Aclassifier = AngleLinear(linear_size, self.num_classes, bias=False)
 
+        if self.use_sagan:
+            self.imsize = 128
+            conv_dim = 128
+            layer1 = []
+            layer2 = []
+            layer3 = []
+            last = []
+
+            layer1.append(SpectralNorm(nn.Conv2d(linear_size, conv_dim, 4, 2, 1)))
+            layer1.append(nn.LeakyReLU(0.1))
+
+            curr_dim = conv_dim
+
+            layer2.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+            layer2.append(nn.LeakyReLU(0.1))
+            curr_dim = curr_dim * 2
+
+            layer3.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+            layer3.append(nn.LeakyReLU(0.1))
+            curr_dim = curr_dim * 2
+
+            if self.imsize == 64:
+                layer4 = []
+                layer4.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+                layer4.append(nn.LeakyReLU(0.1))
+                self.l4 = nn.Sequential(*layer4)
+                curr_dim = curr_dim * 2
+            self.l1 = nn.Sequential(*layer1)
+            self.l2 = nn.Sequential(*layer2)
+            self.l3 = nn.Sequential(*layer3)
+
+            last.append(nn.Conv2d(curr_dim, 1, 1))
+            self.last = nn.Sequential(*last)
+
+            self.attn1 = Self_Attn(256, 'relu')
+            self.attn2 = Self_Attn(512, 'relu')
+
     def forward(self, x, last_cont=None):
-        x = self.model(x)
+        x = self.model(x)  # 8,1792,14,14
+        x_sagan = x
         if self.use_dcl:
             mask = self.Convmask(x)
             mask = self.avgpool2(mask)
@@ -101,7 +142,18 @@ class MainModel(nn.Module):
         out.append(self.classifier(x))
 
         if self.use_dcl:
-            out.append(self.classifier_swap(x))
+            if self.use_sagan:
+                out_sagan = self.l1(x_sagan)
+                out_sagan = self.l2(out_sagan)
+                # out_sagan = self.l3(out_sagan)
+                out_sagan, p1 = self.attn1(out_sagan)
+                out_sagan = self.l3(out_sagan)
+                # out_sagan = self.l4(out_sagan)
+                out_sagan, p2 = self.attn2(out_sagan)
+                out_sagan = self.last(out_sagan)
+                out.append(out_sagan)
+            else:
+                out.append(self.classifier_swap(x))  # x：8,1792 out：8, 4
             out.append(mask)
 
         if self.use_Asoftmax:
