@@ -88,8 +88,15 @@ def stat(lot_path):
     return adc_reslut_dict, adc_wrong_dict, manual_reslut_dict, wafer_num
 
 
-def txtrow(recipe, lot_id, wafer_num, adc_reslut_dict, adc_wrong_dict, manual_reslut_dict):
-    row = [recipe, lot_id, wafer_num,
+def get_folder_time(folder_path):
+    timestamp = os.path.getctime(folder_path)
+    folder_time = datetime.datetime.fromtimestamp(timestamp)
+    folder_time_str = folder_time.strftime("%Y%m%d")
+    return folder_time_str
+
+
+def txtrow(recipe, lot_id, lot_time, wafer_num, adc_reslut_dict, adc_wrong_dict, manual_reslut_dict):
+    row = [lot_time, recipe, lot_id, wafer_num,
            adc_reslut_dict["scratch"], adc_reslut_dict["cScratch"], adc_reslut_dict["discolor"], adc_reslut_dict["other"], adc_reslut_dict["PASD"], adc_reslut_dict["SINR"], adc_reslut_dict["false"],
            adc_wrong_dict["scratch"], adc_wrong_dict["cScratch"], adc_wrong_dict["discolor"], adc_wrong_dict["other"], adc_wrong_dict["PASD"], adc_wrong_dict["SINR"], adc_wrong_dict["false"],
            manual_reslut_dict["scratch"], manual_reslut_dict["cScratch"], manual_reslut_dict["discolor"], manual_reslut_dict["other"], manual_reslut_dict["PASD"], manual_reslut_dict["SINR"], manual_reslut_dict["false"],
@@ -114,8 +121,9 @@ def stat_recipe(reviewed_path, recipe_dict):
             lot_path = os.path.join(recipe_path, lot)
             if not os.path.isdir(lot_path):
                 continue
+            lot_time = get_folder_time(lot_path)
             adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb, wafer_num = stat(lot_path)
-            row_lot = txtrow(recipe, lot, wafer_num, adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb)
+            row_lot = txtrow(recipe, lot, lot_time, wafer_num, adc_reslut_dict_bb, adc_wrong_dict_bb, manual_reslut_dict_bb)
             rows_recipe.append(row_lot)
             rows_all.append(row_lot)
         recipe_csv_path = os.path.join(recipe_path, "{}_ACC.csv".format(recipe))
@@ -123,7 +131,7 @@ def stat_recipe(reviewed_path, recipe_dict):
     return rows_all
 
 categories = ["discolor", "false", "other", "scratch", "cScratch", "PASD", "SINR"]
-headers = ["recipe", "lot_num", "wafer_num",
+headers = ["datetime", "recipe", "lot_num", "wafer_num",
            "adc_scratch", "adc_cScratch", "adc_discolor", "adc_other", "adc_PASD", "adc_SINR", "adc_false",
            "wrong_scratch", "wrong_cScratch", "wrong_discolor", "wrong_other", "wrong_PASD", "wrong_SINR", "wrong_false",
            "manual_scratch", "manual_cScratch", "manual_discolor", "manual_other", "manual_PASD", "manual_SINR", "manual_false"
