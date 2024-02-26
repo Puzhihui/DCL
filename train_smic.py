@@ -209,6 +209,8 @@ if __name__ == '__main__':
 
     # load model
     args.resume = os.path.join(cfg_mode.online_model_dir, cfg_mode.online_model_name)
+    if not os.path.exists(args.resume):
+        args.resume = None
     if (args.resume is None) and (not args.auto_resume):
         print('train from imagenet pretrained models ...', flush=True)
         _ = log_server.logging("train from imagenet pretrained models ...") if log_server else 1
