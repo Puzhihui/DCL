@@ -130,16 +130,20 @@ class LoadConfig(object):
             self.numcls = 4
 
         # 中芯北方和中芯京城
-        elif args.dataset == 'back_M6':
+        elif args.dataset == 'Back_M6':
             self.dataset = args.dataset
-            self.rawdata_root = r'D:\Solution\datas\smic_om_back_5'
-            self.anno_root = './datasets/smic_om_back_5'
+            # self.rawdata_root = r'D:\Solution\datas\smic_om_back_5'
+            self.train_path = r'D:\Solution\datas\Back_M6'
+            self.val_path = r'D:\Solution\datas\Back_M6_val'
+            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M6'
             self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'cScratch': "4"}
             self.numcls = len(self.multi_classes)
-        elif args.dataset == 'front_M6':
+        elif args.dataset == 'Front_M6':
             self.dataset = args.dataset
-            self.rawdata_root = r'D:\Solution\datas\smic_om_front_by_recipe'
-            self.anno_root = './datasets/smic_om_front'
+            # self.rawdata_root = r'D:\Solution\datas\smic_om_front_by_recipe'
+            self.train_path = r'D:\Solution\datas\Front_M6'
+            self.val_path = r'D:\Solution\datas\Front_M6_val'
+            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M6'
             self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'PASD': "4", 'SINR': "5"}
             self.numcls = len(self.multi_classes)
 
@@ -150,7 +154,7 @@ class LoadConfig(object):
             self.train_path = r'D:\Solution\datas\Front_M47'
             self.val_path = r'D:\Solution\datas\Front_M47_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M47'
-            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4", 'voiding': "5", "wrinkle": 6}
+            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4", 'voiding': "5", "wrinkle": "6"}
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Back_M47':
             self.dataset = args.dataset
