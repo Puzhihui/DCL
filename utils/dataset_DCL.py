@@ -34,7 +34,7 @@ def random_sample(img_names, labels):
 class dataset(data.Dataset):
     def __init__(self, Config, anno, swap_size=[7,7], common_aug=None, swap=None, totensor=None, train=False, train_val=False, test=False,
                  resize_aug=None, val_resize_totensor=None):
-        self.root_path = Config.rawdata_root
+        # self.root_path = Config.rawdata_root
         self.numcls = Config.numcls
         self.dataset = Config.dataset
         self.use_cls_2 = Config.cls_2
@@ -62,7 +62,8 @@ class dataset(data.Dataset):
         return len(self.paths)
 
     def __getitem__(self, item):
-        img_path = os.path.join(self.root_path, self.paths[item])
+        # img_path = os.path.join(self.root_path, self.paths[item])
+        img_path = self.paths[item]
         img = self.pil_loader(img_path)
         if self.test:
             # img = self.totensor(img)

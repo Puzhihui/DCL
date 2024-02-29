@@ -38,6 +38,7 @@ def get_str_datetime():
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
     parser.add_argument('--mode', default='Back', type=str)
+    parser.add_argument('--client', default='M47', type=str)
     parser.add_argument('--data', dest='dataset',
                         default='smic_om_3', type=str)
     parser.add_argument('--save', dest='resume',
@@ -99,15 +100,14 @@ def auto_load_resume(load_dir):
 
 args = parse_args()
 mode = args.mode
+client = args.client
+args.dataset = "{}_{}".format(mode, client)
 if mode == "Back":
     cfg_mode = smic_back_online()
-    args.dataset = "smic_om_back_5"
 elif mode == "Front":
     cfg_mode = smic_front_online()
-    args.dataset = "smic_om_front"
 else:
     raise "Mode error!!!"
-print(mode)
 if __name__ == '__main__':
     # ========================================================日志模块========================================================
     log_path = r"D:\Solution\log\train_model" if platform.system().lower() == 'windows' else './logs'
