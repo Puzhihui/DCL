@@ -4,25 +4,17 @@ import argparse
 import datetime
 
 from utils import get_recipe_lot, write_csv
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='stat acc')
-    parser.add_argument('--mode', default='Back', type=str)
-    parser.add_argument('--imagedata', default=r'F:\ImageData', type=str)
-    parser.add_argument('--img_path', default=r'D:\Solution\datas\get_report', type=str)
-    parser.add_argument('--is_all_recipe', action='store_true')
-    args = parser.parse_args()
-    return args
+from config import LoadConfig
 
 
 def manual_result_stat(mode_path):
     manual_reslut_dict = dict()
-    for category in categories:
+    for category in multi_classes:
         img_list = glob.glob(os.path.join(mode_path, category, "*.bmp"))
         new_img_list = []
         for img in img_list:
             label = os.path.basename(img).split("@")[0]
-            if label not in categories:
+            if label not in multi_classes:
                 continue
             new_img_list.append(img)
         manual_reslut_dict[category] = len(new_img_list)
@@ -31,7 +23,7 @@ def manual_result_stat(mode_path):
 
 def adc_reslut_stat(mode_path):
     adc_reslut_dict = dict()
-    for category in categories:
+    for category in multi_classes:
         adc_reslut_dict[category] = 0
     img_list = glob.glob(os.path.join(mode_path, "*", "*.bmp"))
     for img in img_list:
@@ -47,10 +39,10 @@ def find_adc_wrong_img(mode_path, label):
     wrong = 0
     for img in img_list:
         manual = img.split("\\")[-2]
-        if manual == label or manual not in categories:
+        if manual == label or manual not in multi_classes:
             continue
         adc = os.path.basename(img).split("@")[0]
-        if adc not in categories:
+        if adc not in multi_classes:
             continue
         if manual != adc and adc == label:
             wrong += 1
@@ -59,9 +51,9 @@ def find_adc_wrong_img(mode_path, label):
 
 def adc_wrong_stat(mode_path):
     adc_wrong_dict = dict()
-    for category in categories:
+    for category in multi_classes:
         adc_wrong_dict[category] = 0
-    for category in categories:
+    for category in multi_classes:
         adc_wrong_dict[category] = find_adc_wrong_img(mode_path, category)
     return adc_wrong_dict
 
@@ -95,13 +87,32 @@ def get_folder_time(folder_path):
     return folder_time_str
 
 
+def get_result(result_dict, header, header_start):
+    result = []
+    for category in multi_classes:
+        header.append("{}_{}".format(header_start, category))
+        result.append(result_dict[category])
+    return result, header
+
+
 def txtrow(recipe, lot_id, lot_time, wafer_num, adc_reslut_dict, adc_wrong_dict, manual_reslut_dict):
     row = [lot_time, recipe, lot_id, wafer_num,
-           adc_reslut_dict["scratch"], adc_reslut_dict["cScratch"], adc_reslut_dict["discolor"], adc_reslut_dict["other"], adc_reslut_dict["PASD"], adc_reslut_dict["SINR"], adc_reslut_dict["false"],
-           adc_wrong_dict["scratch"], adc_wrong_dict["cScratch"], adc_wrong_dict["discolor"], adc_wrong_dict["other"], adc_wrong_dict["PASD"], adc_wrong_dict["SINR"], adc_wrong_dict["false"],
-           manual_reslut_dict["scratch"], manual_reslut_dict["cScratch"], manual_reslut_dict["discolor"], manual_reslut_dict["other"], manual_reslut_dict["PASD"], manual_reslut_dict["SINR"], manual_reslut_dict["false"],
+           # adc_reslut_dict["scratch"], adc_reslut_dict["cScratch"], adc_reslut_dict["discolor"], adc_reslut_dict["other"], adc_reslut_dict["PASD"], adc_reslut_dict["SINR"], adc_reslut_dict["false"],
+           # adc_wrong_dict["scratch"], adc_wrong_dict["cScratch"], adc_wrong_dict["discolor"], adc_wrong_dict["other"], adc_wrong_dict["PASD"], adc_wrong_dict["SINR"], adc_wrong_dict["false"],
+           # manual_reslut_dict["scratch"], manual_reslut_dict["cScratch"], manual_reslut_dict["discolor"], manual_reslut_dict["other"], manual_reslut_dict["PASD"], manual_reslut_dict["SINR"], manual_reslut_dict["false"],
            ]
-    return row
+    header = ["datetime", "recipe", "lot_num", "wafer_num"]
+    result, header = get_result(adc_reslut_dict, header, "adc")
+    row.extend(result)
+    result, header = get_result(adc_wrong_dict, header, "wrong")
+    row.extend(result)
+    result, header = get_result(manual_reslut_dict, header, "manual")
+    row.extend(result)
+    global headers
+    if not headers:
+        headers = header
+
+    return row, header
 
 
 def stat_recipe(reviewed_path, recipe_dict):
@@ -130,19 +141,40 @@ def stat_recipe(reviewed_path, recipe_dict):
         write_csv(recipe_csv_path, rows_recipe, headers)
     return rows_all
 
-categories = ["discolor", "false", "other", "scratch", "cScratch", "PASD", "SINR"]
-headers = ["datetime", "recipe", "lot_num", "wafer_num",
-           "adc_scratch", "adc_cScratch", "adc_discolor", "adc_other", "adc_PASD", "adc_SINR", "adc_false",
-           "wrong_scratch", "wrong_cScratch", "wrong_discolor", "wrong_other", "wrong_PASD", "wrong_SINR", "wrong_false",
-           "manual_scratch", "manual_cScratch", "manual_discolor", "manual_other", "manual_PASD", "manual_SINR", "manual_false"
-           ]
+multi_classes = list()
+headers = None
+# headers = ["datetime", "recipe", "lot_num", "wafer_num",
+#            "adc_scratch", "adc_cScratch", "adc_discolor", "adc_other", "adc_PASD", "adc_SINR", "adc_false",
+#            "wrong_scratch", "wrong_cScratch", "wrong_discolor", "wrong_other", "wrong_PASD", "wrong_SINR", "wrong_false",
+#            "manual_scratch", "manual_cScratch", "manual_discolor", "manual_other", "manual_PASD", "manual_SINR", "manual_false"
+#            ]
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='stat acc')
+    parser.add_argument('--mode', default='Back', type=str)
+    parser.add_argument('--imagedata', default=r'F:\ImageData', type=str)
+    parser.add_argument('--img_path', default=r'D:\Solution\datas\get_report', type=str)
+    parser.add_argument('--client', default='M47', type=str)
+    args = parser.parse_args()
+    return args
+
 
 if __name__ == '__main__':
     args = parse_args()
-    print("Start stat ACC, PlEASE CHECK, model: {}, is_all_recipes: {}".format(args.mode, args.is_all_recipe))
-    target_recipe_dict = get_recipe_lot(args, os.path.join(args.img_path, args.mode, "reviewed"))
-    # print(target_recipe_dict)
-    rows_all = stat_recipe(os.path.join(args.img_path, args.mode, "reviewed"), target_recipe_dict)
+    mode = args.mode
+    client = args.client
+    dataset = "{}_{}".format(mode, client)
+    args.dataset, args.swap_num, args.backbone = dataset, None, None
+    cfg = LoadConfig(args, 'train', True)
+    global multi_classes
+    multi_classes = list(cfg.multi_classes.keys())
+
+    print("{}: Start calculate ACC!".format(mode))
+    args.is_all_recipe = True
+    mode_reviewed_path = os.path.join(args.img_path, args.mode, "reviewed")
+
+    target_recipe_dict = get_recipe_lot(args, mode_reviewed_path)
+    rows_all = stat_recipe(mode_reviewed_path, target_recipe_dict)
     csv_path = os.path.join(os.path.join(args.img_path, args.mode),
                             "{}_{}_{}_{}_{}_report.csv".format(datetime.datetime.now().year,
                                                                      datetime.datetime.now().month,

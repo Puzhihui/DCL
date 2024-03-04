@@ -154,7 +154,7 @@ class LoadConfig(object):
             self.train_path = r'D:\Solution\datas\Front_M47'
             self.val_path = r'D:\Solution\datas\Front_M47_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M47'
-            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4", 'voiding': "5", "wrinkle": "6"}
+            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4", 'voiding': "5", "wrinkle": "6", "discolor": "7"}
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Back_M47':
             self.dataset = args.dataset
@@ -162,7 +162,7 @@ class LoadConfig(object):
             self.train_path = r'D:\Solution\datas\Back_M47'
             self.val_path = r'D:\Solution\datas\Back_M47_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M47'
-            self.multi_classes = {'false': "0", 'MissingCorner': "1", 'other': "2", "PAC": "3", 'scratch': "4"}
+            self.multi_classes = {'false': "0", 'MissingCorner': "1", 'other': "2", "particle": "3", 'scratch': "4", "discolor": "5"}
             self.numcls = len(self.multi_classes)
         else:
             raise Exception('dataset not defined ???')

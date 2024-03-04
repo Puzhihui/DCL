@@ -4,15 +4,7 @@ import glob
 import argparse
 import random
 import datetime
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='get report')
-    parser.add_argument('--mode', default='Back', type=str)
-    parser.add_argument('--img_path', default=r'D:\Solution\datas\get_report', type=str)
-    # parser.add_argument('--is_all_recipe', action='store_true')
-    args = parser.parse_args()
-    return args
+from config import LoadConfig
 
 
 def get_added_lot():
@@ -48,7 +40,7 @@ def get_img_list(lot_path):
                 overkill_img_list.append([img, false_string])
             else:
                 good_img_list.append([img, false_string])
-        elif op_label in [scratch_string, discolor_string, other_string, pasd_string, sinr_string, cscratch_string]:
+        elif op_label in list(multi_classes.keys()):
             defect_img_list.append([img, op_label])
         else:
             continue
@@ -137,7 +129,7 @@ def copy_remove_imgs(save_train_path, recipe, category, img_list):
             print("copy ERROR: {}".format(img))
             continue
 
-def move_split_imgs(from_path, dataset_path, val_ratio=0.1):
+def move_split_imgs(from_path,  train_data_path, val_data_path, val_ratio=0.1):
     global val_num
     for recipe in os.listdir(from_path):
         recipe_path = os.path.join(from_path, recipe)
@@ -159,21 +151,33 @@ def move_split_imgs(from_path, dataset_path, val_ratio=0.1):
                     val_num = 1
                 elif len(img_list) > 10:
                     val_num = int(len(img_list) * val_ratio)
-                copy_remove_imgs(os.path.join(dataset_path, "val"), recipe, category, img_list[:val_num])
-                copy_remove_imgs(os.path.join(dataset_path, "train"), recipe, category, img_list[val_num:])
+                copy_remove_imgs(val_data_path, recipe, category, img_list[:val_num])
+                copy_remove_imgs(train_data_path, recipe, category, img_list[val_num:])
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='get report')
+    parser.add_argument('--mode', default='Back', type=str)
+    parser.add_argument('--img_path', default=r'D:\Solution\datas\get_report', type=str)
+    parser.add_argument('--client', default='M47', type=str)
+    args = parser.parse_args()
+    return args
 
 
 false_string = 'false'
-scratch_string = 'scratch'
-cscratch_string = 'cScratch'
-discolor_string = 'discolor'
-other_string = 'other'
-pasd_string = 'PASD'
-sinr_string = 'SINR'
-
 added_txt = "added_lot.txt"
+
 if __name__ == '__main__':
     args = parse_args()
+    client = args.client
+    mode = args.mode
+    dataset = "{}_{}".format(mode, client)
+    args.dataset, args.swap_num, args.backbone = dataset, None, None
+    cfg = LoadConfig(args, 'train', True)
+    multi_classes = cfg.multi_classes
+    train_data_path = cfg.train_path
+    val_data_path = cfg.val_path
+
     added_lot_dict = get_added_lot()
     today = datetime.datetime.now().strftime('%Y%m%d')
     save_path = os.path.join(args.img_path, args.mode, "train_data", today)
@@ -183,11 +187,4 @@ if __name__ == '__main__':
     write_txt(added_this_time)
     warning_message(save_path, added_this_time)
     # 移动数据至训练集和验证集 在每个文件夹下，如果图片数<3张，则全部用于训练集，如果>=3并<=10，则随机取1张为验证集，如果>10张取10%
-    if args.mode == "Front":
-        dataset_path = "D:\Solution\datas\smic_om_back_5"
-    elif args.mode == "Back":
-        dataset_path = "D:\Solution\datas\smic_om_front_by_recipe"
-    else:
-        raise "不存在这个数据集:{}".format(args.mode)
-    move_split_imgs(save_path, dataset_path)
-
+    move_split_imgs(save_path, train_data_path, val_data_path)
