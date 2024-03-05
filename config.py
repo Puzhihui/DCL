@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 
 from transforms import transforms
-from utils.autoaugment import ImageNetPolicy
+# from utils.autoaugment import ImageNetPolicy
 
 # pretrained model checkpoints
 pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',

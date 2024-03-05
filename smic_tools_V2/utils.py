@@ -37,3 +37,18 @@ def write_csv(csv_path, rows, headers):
         f_csv = csv.writer(f)
         f_csv.writerow(headers)
         f_csv.writerows(rows)
+
+
+def get_added_lot(added_txt):
+    added_lot = dict()
+    if os.path.exists(added_txt):
+        f = open(added_txt, "r", encoding='utf-8')
+        lines = f.readlines()
+        f.close()
+        for line in lines:
+            line = line.rstrip("\n")
+            recipe, lot = line.split(',')[0], line.split(',')[1]
+            if recipe not in added_lot.keys():
+                added_lot[recipe] = set()
+            added_lot[recipe].add(lot)
+    return added_lot

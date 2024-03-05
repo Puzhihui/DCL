@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '../')
 import os
 import shutil
 import glob
@@ -5,21 +7,7 @@ import argparse
 import random
 import datetime
 from config import LoadConfig
-
-
-def get_added_lot():
-    added_lot = dict()
-    if os.path.exists(added_txt):
-        f = open(added_txt, "r", encoding='utf-8')
-        lines = f.readlines()
-        f.close()
-        for line in lines:
-            line = line.rstrip("\n")
-            recipe, lot = line.split(',')[0], line.split(',')[1]
-            if recipe not in added_lot.keys():
-                added_lot[recipe] = set()
-            added_lot[recipe].add(lot)
-    return added_lot
+from utils import get_added_lot
 
 
 def get_img_list(lot_path):
@@ -71,7 +59,7 @@ def move_img_list(save_path, recipe, defect_img_list, overkill_imgs, false_img_l
     if defect_num > 0:
         for img in false_img_list[:defect_num]:
             img_path, op_label = img[0], img[1]
-            save_img_path = os.path.join(save_path, today, "Front_{}".format(today), recipe, op_label)
+            save_img_path = os.path.join(save_path, recipe, op_label)
             os.makedirs(save_img_path, exist_ok=True)
             shutil.copy2(img_path, save_img_path)
             # os.remove(img_path)
@@ -80,23 +68,23 @@ def move_img_list(save_path, recipe, defect_img_list, overkill_imgs, false_img_l
 
 def get_train_imgs(reviewed_path, save_path, added_lot_dict):
     added_this_time = dict()
-    for recipe in os.listdir(reviewed_path):
-        recipe_path = os.path.join(reviewed_path, recipe)
-        if not os.path.isdir(recipe_path):
+    for time_recipe_lot in os.listdir(reviewed_path):
+        time_recipe_lot_path = os.path.join(reviewed_path, time_recipe_lot)
+        if not os.path.isdir(time_recipe_lot_path):
             continue
-        added_lot_list = []
-        if recipe in added_lot_dict.keys():
-            added_lot_list = added_lot_dict[recipe]
-        for lot in os.listdir(recipe_path):
-            lot_path = os.path.join(recipe_path, lot)
-            if not os.path.isdir(lot_path) or lot in added_lot_list:
-                continue
-            bright_defect_img_list, bright_overkill_imgs, bright_false_img_list = get_img_list(lot_path)
-            flag = move_img_list(save_path, recipe, bright_defect_img_list, bright_overkill_imgs, bright_false_img_list)
-            if flag:
-                if recipe not in added_this_time.keys():
-                    added_this_time[recipe] = set()
-                added_this_time[recipe].add(lot)
+
+        lot_time, recipe, lot = time_recipe_lot.split("@")
+        pass_lot_set = added_lot_dict[recipe] if recipe in added_lot_dict.keys() else []
+        if lot in pass_lot_set:
+            continue
+
+        defect_img_list, overkill_imgs, false_img_list = get_img_list(time_recipe_lot_path)
+        flag = move_img_list(save_path, recipe, defect_img_list, overkill_imgs, false_img_list)
+        if flag:
+            if recipe not in added_this_time.keys():
+                added_this_time[recipe] = set()
+            added_this_time[recipe].add(lot)
+
     return added_this_time
 
 
@@ -110,7 +98,7 @@ def write_txt(added_this_time):
 def warning_message(save_path, added_this_time):
     if len(added_this_time.keys()) > 0:
         print("请调整{}中的数据, 以便于训练".format(save_path))
-        print("若需要增加其他数据，请在此阶段加入")
+        print("若需要增加其他数据，请在执行下一步之前，加入上述文件夹")
         user_input = "None"
         while(user_input.lower() != 'y'):
             user_input = input("调整或加入完成后请输入y后回车:")
@@ -135,24 +123,21 @@ def move_split_imgs(from_path,  train_data_path, val_data_path, val_ratio=0.1):
         recipe_path = os.path.join(from_path, recipe)
         if not os.path.isdir(recipe_path):
             continue
-        for lot in os.listdir(recipe_path):
-            lot_path = os.path.join(recipe_path, lot)
-            if not os.path.isdir(lot_path):
+        for category in os.listdir(recipe_path):
+            category_path = os.path.join(recipe_path, category)
+            if not os.path.isdir(category_path):
                 continue
-            for category in os.listdir(lot_path):
-                category_path = os.path.join(lot_path, category)
-                if not os.path.isdir(category_path):
-                    continue
-                img_list = glob.glob(os.path.join(category_path, "*.bmp"))
-                random.shuffle(img_list)
-                if len(img_list) < 3:
-                    val_num = 0
-                elif len(img_list) <= 10 and len(img_list) >= 3:
-                    val_num = 1
-                elif len(img_list) > 10:
-                    val_num = int(len(img_list) * val_ratio)
-                copy_remove_imgs(val_data_path, recipe, category, img_list[:val_num])
-                copy_remove_imgs(train_data_path, recipe, category, img_list[val_num:])
+            img_list = glob.glob(os.path.join(category_path, "*.bmp"))
+            random.shuffle(img_list)
+            if len(img_list) < 3:
+                val_num = 0
+            elif len(img_list) <= 10 and len(img_list) >= 3:
+                val_num = 1
+            elif len(img_list) > 10:
+                val_num = int(len(img_list) * val_ratio)
+            copy_remove_imgs(val_data_path, recipe, category, img_list[:val_num])
+            copy_remove_imgs(train_data_path, recipe, category, img_list[val_num:])
+
 
 
 def parse_args():
@@ -168,6 +153,7 @@ false_string = 'false'
 added_txt = "added_lot.txt"
 
 if __name__ == '__main__':
+    print("-----------------------------------copy data from reviewed-----------------------------------")
     args = parse_args()
     client = args.client
     mode = args.mode
@@ -178,13 +164,14 @@ if __name__ == '__main__':
     train_data_path = cfg.train_path
     val_data_path = cfg.val_path
 
-    added_lot_dict = get_added_lot()
+    added_lot_dict = get_added_lot(added_txt)
     today = datetime.datetime.now().strftime('%Y%m%d')
     save_path = os.path.join(args.img_path, args.mode, "train_data", today)
     added_this_time = get_train_imgs(os.path.join(args.img_path, args.mode, "reviewed"),
                                      save_path,
                                      added_lot_dict)
-    write_txt(added_this_time)
     warning_message(save_path, added_this_time)
     # 移动数据至训练集和验证集 在每个文件夹下，如果图片数<3张，则全部用于训练集，如果>=3并<=10，则随机取1张为验证集，如果>10张取10%
     move_split_imgs(save_path, train_data_path, val_data_path)
+    write_txt(added_this_time)
+    print("-----------------------------------copy data from reviewed-----------------------------------\n\n\n")
