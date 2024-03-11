@@ -151,12 +151,15 @@ def parse_args():
 
 false_string = 'false'
 added_txt = "added_lot.txt"
+added_txt_Back = "added_lot_Back.txt"
 
 if __name__ == '__main__':
     print("-----------------------------------copy data from reviewed-----------------------------------")
     args = parse_args()
     client = args.client
     mode = args.mode
+    if mode == "Back":
+        added_txt = added_txt_Back
     dataset = "{}_{}".format(mode, client)
     args.dataset, args.swap_num, args.backbone = dataset, None, None
     cfg = LoadConfig(args, 'train', True)

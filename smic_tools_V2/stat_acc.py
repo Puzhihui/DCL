@@ -142,11 +142,14 @@ def parse_args():
     return args
 
 added_txt = "added_lot.txt"
+added_txt_Back = "added_lot_Back.txt"
 
 if __name__ == '__main__':
     print("-----------------------------------calculate ACC-----------------------------------")
     args = parse_args()
     mode = args.mode
+    if mode == "Back":
+        added_txt = added_txt_Back
     client = args.client
     dataset = "{}_{}".format(mode, client)
     args.dataset, args.swap_num, args.backbone = dataset, None, None
