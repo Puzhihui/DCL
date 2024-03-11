@@ -4,7 +4,7 @@ cd D:\Solution\code\smic\DCL\smic_tools_V2
 @REM CALL D:\Anaconda3\Scripts\activate.bat
 call conda activate torch1.0_cuda8.0
 
-set client=M47
+set client=M6
 set imagedata=F:\ImageData
 set img_path=D:\Solution\datas\get_report
 
