@@ -129,10 +129,10 @@ class LoadConfig(object):
             self.anno_root = './datasets/smic_om_back'
             self.numcls = 4
 
-        # 中芯北方和中芯京城
+        # 中芯北方M6
+        # 数据格式 D:\Solution\datas + Front_M6\Front_M6_val + recipeName + false\discolor
         elif args.dataset == 'Back_M6':
             self.dataset = args.dataset
-            # self.rawdata_root = r'D:\Solution\datas\smic_om_back_5'
             self.train_path = r'D:\Solution\datas\Back_M6'
             self.val_path = r'D:\Solution\datas\Back_M6_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M6'
@@ -140,25 +140,39 @@ class LoadConfig(object):
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Front_M6':
             self.dataset = args.dataset
-            # self.rawdata_root = r'D:\Solution\datas\smic_om_front_by_recipe'
             self.train_path = r'D:\Solution\datas\Front_M6'
             self.val_path = r'D:\Solution\datas\Front_M6_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M6'
-            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'PASD': "4", 'SINR': "5"}
+            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'PASD': "4", 'SINR': "5", "PASP": "6"}
             self.numcls = len(self.multi_classes)
 
-        # 中芯天津
+        # 中芯京城M24
+        elif args.dataset == 'Back_M24':
+            self.dataset = args.dataset
+            self.train_path = r'D:\Solution\datas\Back_M24'
+            self.val_path = r'D:\Solution\datas\Back_M24_val'
+            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M24'
+            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
+            self.numcls = len(self.multi_classes)
+        elif args.dataset == 'Front_M24':
+            self.dataset = args.dataset
+            self.train_path = r'D:\Solution\datas\Front_M24'
+            self.val_path = r'D:\Solution\datas\Front_M24_val'
+            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M24'
+            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
+            self.numcls = len(self.multi_classes)
+
+        # 中芯天津M47
         elif args.dataset == 'Front_M47':
             self.dataset = args.dataset
-            # self.rawdata_root = r'D:\Solution\datas\front_M47'
             self.train_path = r'D:\Solution\datas\Front_M47'
             self.val_path = r'D:\Solution\datas\Front_M47_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M47'
-            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4", 'voiding': "5", "wrinkle": "6", "discolor": "7"}
+            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4",
+                                  'voiding': "5", "wrinkle": "6", "discolor": "7", "scratch": 8}
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Back_M47':
             self.dataset = args.dataset
-            # self.rawdata_root = r'D:\Solution\datas\back_M47'
             self.train_path = r'D:\Solution\datas\Back_M47'
             self.val_path = r'D:\Solution\datas\Back_M47_val'
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M47'
