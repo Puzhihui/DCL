@@ -13,9 +13,9 @@ echo Front: train Front model
 :input
 set /p userInput=Please input command, Back or Front:
 echo ==================================================
-python stat_acc.py --mode %userInput% --img_path %img_path% --client %client%
 
-python get_data_from_reviewed.py --mode %userInput% --img_path %img_path% --client %client%
+@REM python stat_acc.py --mode %userInput% --img_path %img_path% --client %client%
+@REM python get_data_from_reviewed.py --mode %userInput% --img_path %img_path% --client %client%
 
 cd D:\Solution\code\smic\DCL\smic_tools
 python gen_smic_txt.py --mode %userInput% --client %client%
