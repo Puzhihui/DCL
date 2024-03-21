@@ -133,50 +133,80 @@ class LoadConfig(object):
         # 数据格式 D:\Solution\datas + Front_M6\Front_M6_val + recipeName + false\discolor
         elif args.dataset == 'Back_M6':
             self.dataset = args.dataset
+            # 明场
             self.train_path = r'D:\Solution\datas\Back_M6'
             self.val_path = r'D:\Solution\datas\Back_M6_val'
+            # 暗场
+            self.train_dark_path = self.train_path.replace("Back_", "BackDark_")
+            self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
+            # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M6'
-            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'cScratch': "4"}
+            self.multi_classes = {'BSDC': "0", 'BSOH': "1", 'scratch': "2", "false": "3", 'BSCS': "4"}
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Front_M6':
             self.dataset = args.dataset
+            # 明场
             self.train_path = r'D:\Solution\datas\Front_M6'
             self.val_path = r'D:\Solution\datas\Front_M6_val'
+            # 暗场
+            self.train_dark_path = self.train_path.replace("Front_", "FrontDark_")
+            self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
+            # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M6'
-            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3", 'PASD': "4", 'SINR': "5", "PASP": "6"}
+            self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "false": "3", 'PASD': "4", 'SINR': "5", "PASP": "6"}
             self.numcls = len(self.multi_classes)
 
         # 中芯京城M24
         elif args.dataset == 'Back_M24':
             self.dataset = args.dataset
+            # 明场
             self.train_path = r'D:\Solution\datas\Back_M24'
             self.val_path = r'D:\Solution\datas\Back_M24_val'
+            # 暗场
+            self.train_dark_path = self.train_path.replace("Back_", "BackDark_")
+            self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
+            # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M24'
             self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Front_M24':
             self.dataset = args.dataset
+            # 明场
             self.train_path = r'D:\Solution\datas\Front_M24'
             self.val_path = r'D:\Solution\datas\Front_M24_val'
+            # 暗场
+            self.train_dark_path = self.train_path.replace("Front_", "FrontDark_")
+            self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
+            # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M24'
             self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
             self.numcls = len(self.multi_classes)
 
         # 中芯天津M47
+        elif args.dataset == 'Back_M47':
+            self.dataset = args.dataset
+            # 明场
+            self.train_path = r'D:\Solution\datas\Back_M47'
+            self.val_path = r'D:\Solution\datas\Back_M47_val'
+            # 暗场
+            self.train_dark_path = self.train_path.replace("Back_", "BackDark_")
+            self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
+            # 明场+暗场生成的训练txt目录
+            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M47'
+            self.multi_classes = {'false': "0", 'MissingCorner': "1", 'other': "2", "particle": "3", 'scratch': "4", "discolor": "5"}
+            self.numcls = len(self.multi_classes)
         elif args.dataset == 'Front_M47':
             self.dataset = args.dataset
+            # 明场
             self.train_path = r'D:\Solution\datas\Front_M47'
             self.val_path = r'D:\Solution\datas\Front_M47_val'
+            # 暗场
+            self.train_dark_path = self.train_path.replace("Front_", "FrontDark_")
+            self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
+            # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M47'
             self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4",
                                   'voiding': "5", "wrinkle": "6", "discolor": "7", "scratch": 8}
-            self.numcls = len(self.multi_classes)
-        elif args.dataset == 'Back_M47':
-            self.dataset = args.dataset
-            self.train_path = r'D:\Solution\datas\Back_M47'
-            self.val_path = r'D:\Solution\datas\Back_M47_val'
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M47'
-            self.multi_classes = {'false': "0", 'MissingCorner': "1", 'other': "2", "particle": "3", 'scratch': "4", "discolor": "5"}
             self.numcls = len(self.multi_classes)
         else:
             raise Exception('dataset not defined ???')

@@ -23,8 +23,6 @@ args.dataset, args.swap_num, args.backbone = dataset, None, None
 cfg = LoadConfig(args, 'train', True)
 multi_classes = cfg.multi_classes
 
-train_data_path = cfg.train_path
-val_data_path = cfg.val_path
 txt_root_path = cfg.anno_root
 os.makedirs(txt_root_path, exist_ok=True)
 f_train = open(os.path.join(txt_root_path, 'train.txt'), 'w', encoding='utf-8')
@@ -53,9 +51,19 @@ def glob_img(data_path, f_txt, data="train"):
     print(output)
     return data_dict
 
+
 print('2.start:开始生成数据集txt文件')
+print('明场数据：')
+train_data_path = cfg.train_path
+val_data_path = cfg.val_path
 train_dict = glob_img(train_data_path, f_train, "train")
 val_dict = glob_img(val_data_path, f_val, "val")
+print('暗场数据：')
+train_dark_path = cfg.train_dark_path
+val_dark_path = cfg.val_dark_path
+train_dict = glob_img(train_dark_path, f_train, "train")
+val_dict = glob_img(val_dark_path, f_val, "val")
+
 f_train.close()
 f_val.close()
 print('训练集文件为{}\n验证集文件为{}'.format(os.path.join(txt_root_path, 'train.txt'), os.path.join(txt_root_path, 'val.txt')))
