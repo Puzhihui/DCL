@@ -21,7 +21,7 @@ cd D:\Solution\code\smic\DCL\smic_tools
 python gen_smic_txt.py --mode %userInput% --client %client%
 
 cd D:\Solution\code\smic\DCL\
-python train_smic.py --mode %userInput% --epoch 25 --client %client%
+python train_smic.py --mode %userInput% --epoch 25 --client %client% --tb 16 --vb 16
 
 cd D:\Solution\code\smic\DCL\smic_tools
 python replace_online_model.py --mode %userInput%

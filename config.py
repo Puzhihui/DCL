@@ -153,7 +153,7 @@ class LoadConfig(object):
             self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
             # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M6'
-            self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "false": "3", 'PASD': "4", 'SINR': "5", "PASP": "6"}
+            self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "false": "3", 'PASD': "4", 'SINR': "5", "PASP": "6", "PANS": "7"}
             self.numcls = len(self.multi_classes)
 
         # 中芯京城M24
