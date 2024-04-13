@@ -9,6 +9,7 @@ set client=%1
 set mode=%2
 set epoch=%3
 set batch_size=%4
+set resume_checkpoint=%5
 
 echo ==================================================
 
@@ -16,8 +17,8 @@ cd D:\Solution\code\smic\DCL\smic_tools
 python gen_smic_txt.py --mode %mode% --client %client%
 
 cd D:\Solution\code\smic\DCL\
-python train_smic.py --mode %mode% --epoch %epoch% --client %client% --tb %batch_size% --vb %batch_size%
+python train_smic.py --mode %mode% --epoch %epoch% --client %client% --tb %batch_size% --vb %batch_size% --resume_checkpoint %resume_checkpoint%
 
 cd D:\Solution\code\smic\DCL\smic_tools
 python replace_online_model.py --mode %mode%
-pause
+@REM pause

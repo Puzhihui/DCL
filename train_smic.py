@@ -43,6 +43,7 @@ def parse_args():
                         default='smic_om_3', type=str)
     parser.add_argument('--save', dest='resume',
                         default=None, type=str)
+    parser.add_argument('--resume_checkpoint', default=False, type=bool)
     parser.add_argument('--save_dir', dest='save_dir',
                         default=r'D:\Solution\code\smic\DCL\net_model', type=str)
     parser.add_argument('--backbone', dest='backbone',
@@ -208,9 +209,11 @@ if __name__ == '__main__':
     model = MainModel(Config)
 
     # load model
-    args.resume = os.path.join(cfg_mode.online_model_dir, cfg_mode.online_model_name)
-    if not os.path.exists(args.resume):
+    if args.resume_checkpoint and os.path.exists(args.resume):
+        args.resume = os.path.join(cfg_mode.online_model_dir, cfg_mode.online_model_name)
+    else:
         args.resume = None
+
     if (args.resume is None) and (not args.auto_resume):
         print('train from imagenet pretrained models ...', flush=True)
         _ = log_server.logging("train from imagenet pretrained models ...") if log_server else 1
