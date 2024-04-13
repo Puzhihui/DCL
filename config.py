@@ -141,7 +141,7 @@ class LoadConfig(object):
             self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
             # 明场+暗场生成的训练txt目录
             self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M6'
-            self.multi_classes = {'BSDC': "0", 'BSOH': "1", 'SCRATCH': "2", "FALSE": "3", 'BSCS': "4", "BSCSS": "5"}
+            self.multi_classes = {'BSDC': "0", 'BSNS': "1", 'SCRATCH': "2", "FALSE": "3", 'BSCS': "4", "BSCSS": "5"}
             self.numcls = len(self.multi_classes)
         elif args.dataset == 'Front_M6':
             self.dataset = args.dataset
