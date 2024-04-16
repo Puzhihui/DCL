@@ -135,6 +135,11 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/pzh/data/jssi/photo_multi'
             self.anno_root = './datasets/jssi_photo/jssi_photo_multi'
             self.numcls = 43
+        elif args.dataset == 'jssi_dirty_recipe':
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/jssi/jssi_dirty_recipe'
+            self.anno_root = './datasets/jssi_dirty_recipe'
+            self.numcls = 2
         # ===================ht==================================
         elif args.dataset == 'ht_less500_resize':
             self.dataset = args.dataset
@@ -162,6 +167,11 @@ class LoadConfig(object):
             self.rawdata_root = r'D:\Solution\datas\smic_om_3' # /data3/pzh/data/smic/smic_om_3
             self.anno_root = './datasets/smic_om_3'
             self.numcls = 3
+        elif args.dataset == "sic_eight":
+            self.dataset = args.dataset
+            self.rawdata_root = '/data3/pzh/data/sic_eight'
+            self.anno_root = './datasets/sic_eight'
+            self.numcls = 8
         else:
             raise Exception('dataset not defined ???')
 

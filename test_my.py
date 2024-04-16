@@ -25,9 +25,10 @@ from config import LoadConfig, load_data_transformers
 from utils.test_tool import set_text, save_multi_img, cls_base_acc
 
 import pdb
+import glob
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 # python test_my.py --data jssi_photo --use_center --use_resize  --test_txt ./test.txt --save ./model.pth
 
@@ -39,6 +40,10 @@ def parse_args():
                         default='efficientnet-b4', type=str)
     parser.add_argument('--test_txt', dest='test_txt',
                         default='/data3/pzh/project/ADC/DCL/datasets/jssi_photo/jssi_photo_center_resize/test1.txt', type=str)
+    parser.add_argument('--ver', dest='version',
+                        default='val', type=str)  # val和test可以计算准确率,搭配test_txt使用 infer只推理,txt中label全部默认填为0，搭配infer_path使用
+    parser.add_argument('--infer_path', dest='infer_path',
+                        default='', type=str)
     parser.add_argument('--use_center', dest='use_center',
                         default=True,  action='store_true')
     parser.add_argument('--use_resize', dest='use_resize',
@@ -47,8 +52,6 @@ def parse_args():
                         default=64, type=int)
     parser.add_argument('--nw', dest='num_workers',
                         default=12, type=int)
-    parser.add_argument('--ver', dest='version',
-                        default='val', type=str)
     parser.add_argument('--save', dest='resume',
                         default=r'/data3/pzh/project/ADC/DCL/net_model/jssi_photo/photo_center_resize/opencv_20230412/_4126_jssi_photo_center_resize/best_weights_2_4731_0.9646.pth', type=str)
     parser.add_argument('--size', dest='resize_resolution',
@@ -75,24 +78,33 @@ def main():
     #     if args.save_suffix == '':
     #         raise Exception('**** miss --ss save suffix is needed. ')
 
-    Config = LoadConfig(args, args.version)
+    Config = LoadConfig(args, "val")
     Config.cls_2xmul = True
-    args.acc_report = True
+    # args.acc_report = True
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
-    test_anno = pd.read_csv(args.test_txt, sep=", ", header=None, names=['ImageName', 'label'], engine='python')
-    data_set = dataset(Config, \
-                       # anno=Config.val_anno if args.version == 'val' else Config.test_anno, \
-                       anno=test_anno, \
-                       swap=transformers["None"], \
-                       # totensor=transformers['adc_val_totensor'],\
-                       totensor=transformers['adc_val_resize_totensor'], \
-                       test=True)
+    if args.version == "test" or args.version == "val":
+        test_anno = pd.read_csv(args.test_txt, sep=", ", header=None, names=['ImageName', 'label'], engine='python')
+    else:
+        test_anno = dict()
+        test_anno["img_name"] = glob.glob(os.path.join(args.infer_path, "*", "*", "*", "ReviewData", "Pass1", "*.jpg"))
+        test_anno["label"] = [-1] * len(test_anno["img_name"])
+
+    data_set = dataset(Config=Config, \
+                      swap_size=args.swap_num, \
+                      anno=test_anno, \
+                      common_aug=transformers["None"], \
+                      swap=transformers["None"], \
+                      totensor=transformers["adc_val_totensor"], \
+                      # val_resize_totensor = transformers["adc_val_resize_totensor"],\
+                      val_resize_totensor=transformers["adc_val_oi_resize_totensor"], \
+                      test=True)
 
     dataloader = torch.utils.data.DataLoader(data_set, \
                                              batch_size=args.batch_size, \
                                              shuffle=False, \
                                              num_workers=args.num_workers, \
-                                             collate_fn=collate_fn4test)
+                                             collate_fn=collate_fn4test,
+                                             pin_memory=True)
 
     setattr(dataloader, 'total_item_len', len(data_set))
 
@@ -115,6 +127,7 @@ def main():
         val_size = ceil(len(data_set) / dataloader.batch_size)
         result_gather = {}
         count_bar = tqdm(total=dataloader.__len__())
+        row = []
         for batch_cnt_val, data_val in enumerate(dataloader):
             count_bar.update(1)
             inputs, labels, img_name = data_val
@@ -136,6 +149,38 @@ def main():
                 # batch_corrects3 = torch.sum((top3_pos[:, 2] == labels)).data.item()
                 # val_corrects3 += (batch_corrects3 + batch_corrects2 + batch_corrects1)
                 val_corrects3 += (batch_corrects2 + batch_corrects1)
+            elif args.version == 'infer':
+                pred_label_list = top3_pos[:, 0]
+                for pred_label, sub_name in zip(pred_label_list, img_name):
+                    pred_label = pred_label.item()
+                    # save_path = "./sic_eight"
+                    # save_img_path = os.path.join(save_path, str(pred_label))
+                    # os.makedirs(save_img_path, exist_ok=True)
+                    # shutil.copy2(sub_name, save_img_path)
+
+                    recipe, wafer_id = sub_name.split("/")[-4], sub_name.split("/")[-6]
+                    categories_dict = {
+                        "DT1": 0,
+                        "DT2": 1,
+                        "DT3": 2,
+                        "DT4": 3,
+                        "DT5": 4,
+                        "DT6": 5,
+                        "DT7": 6,
+                        "Other": 7
+                    }
+                    index2class = {value: key for key, value in categories_dict.items()}
+                    Defect_Type = index2class[pred_label]
+                    save_path = "./sic_eight"
+                    save_img_path = os.path.join(save_path, Defect_Type)
+                    os.makedirs(save_img_path, exist_ok=True)
+                    shutil.copy2(sub_name, save_img_path)
+
+                    basename = os.path.basename(sub_name)
+                    basename_without_extend = basename.replace(".jpg", "")
+                    Defect_Area, Defect_Length, Defect_Width = basename_without_extend.split("-")[-3], basename_without_extend.split("-")[-2], basename_without_extend.split("-")[-1]
+                    Defect_ImageName = basename
+                    row.append([wafer_id, recipe, Defect_Type, Defect_Area, Defect_Length, Defect_Width, Defect_ImageName])
 
             if args.acc_report:
                 for sub_name, sub_cat, sub_val, sub_label in zip(img_name, top3_pos.tolist(), top3_val.tolist(),
@@ -144,6 +189,18 @@ def main():
                                                'top1_val': sub_val[0], 'top2_val': sub_val[1], 'top3_val': sub_val[1],
                                                'label': sub_label}
                     # print(result_gather[sub_name])
+
+        def write_csv(csv_path, rows, headers):
+            if os.path.exists(csv_path):
+                with open(csv_path, 'a+', newline='', encoding='utf-8') as f:
+                    f_csv = csv.writer(f)
+                    f_csv.writerows(rows)
+            else:
+                with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                    f_csv = csv.writer(f)
+                    f_csv.writerow(headers)
+                    f_csv.writerows(rows)
+        write_csv(os.path.join("./sic_eight", "defect.csv"), row, ['Wafer_ID', 'Recipe_Name','Defect_Type','Defect_Area','Defect_Length','Defect_Width','Defect_ImageName'])
     if args.acc_report:
         torch.save(result_gather, 'result_gather_%s' % resume.split('/')[-1][:-4] + '.pt')
 
@@ -320,8 +377,8 @@ def main_CenterAndResize():
 
 
 if __name__ == '__main__':
-    # main()
-    main_CenterAndResize()
+    main()
+    # main_CenterAndResize()
 
 
 

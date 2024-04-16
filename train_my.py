@@ -23,7 +23,7 @@ from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test,
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '1, 2, 3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2,3,4'
 
 # DCL model：nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --cls_mul --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 # DCL model use sagan：nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --cls_2 --use_sagan --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
@@ -116,14 +116,14 @@ if __name__ == '__main__':
                         totensor = transformers["adc_train_totensor"],\
                         train = True)
 
-    trainval_set = dataset(Config = Config, \
-                        swap_size=args.swap_num, \
-                        anno = Config.train_anno,\
-                        common_aug = transformers["None"],\
-                        swap = transformers["None"],\
-                        totensor = transformers["adc_val_totensor"],\
-                        train = False,
-                        train_val = True)
+    # trainval_set = dataset(Config = Config, \
+    #                     swap_size=args.swap_num, \
+    #                     anno = Config.train_anno,\
+    #                     common_aug = transformers["None"],\
+    #                     swap = transformers["None"],\
+    #                     totensor = transformers["adc_val_totensor"],\
+    #                     train = False,
+    #                     train_val = True)
 
     val_set = dataset(Config = Config, \
                       swap_size=args.swap_num, \
@@ -147,16 +147,16 @@ if __name__ == '__main__':
 
     setattr(dataloader['train'], 'total_item_len', len(train_set))
 
-    dataloader['trainval'] = torch.utils.data.DataLoader(trainval_set,\
-                                                batch_size=args.val_batch,\
-                                                shuffle=False,\
-                                                num_workers=args.val_num_workers,\
-                                                collate_fn=collate_fn4val if not Config.use_backbone else collate_fn4backbone,
-                                                drop_last=True if Config.use_backbone else False,
-                                                pin_memory=True)
+    # dataloader['trainval'] = torch.utils.data.DataLoader(trainval_set,\
+    #                                             batch_size=args.val_batch,\
+    #                                             shuffle=False,\
+    #                                             num_workers=args.val_num_workers,\
+    #                                             collate_fn=collate_fn4val if not Config.use_backbone else collate_fn4backbone,
+    #                                             drop_last=True if Config.use_backbone else False,
+    #                                             pin_memory=True)
 
-    setattr(dataloader['trainval'], 'total_item_len', len(trainval_set))
-    setattr(dataloader['trainval'], 'num_cls', Config.numcls)
+    # setattr(dataloader['trainval'], 'total_item_len', len(trainval_set))
+    # setattr(dataloader['trainval'], 'num_cls', Config.numcls)
 
     dataloader['val'] = torch.utils.data.DataLoader(val_set,\
                                                 batch_size=args.val_batch,\
