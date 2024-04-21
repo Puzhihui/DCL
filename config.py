@@ -77,11 +77,11 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
 class LoadConfig(object):
     def __init__(self, args, version):
         if version == 'train':
-            get_list = ['train', 'val']
+            self.get_list = ['train', 'val']
         elif version == 'val':
-            get_list = ['val']
+            self.get_list = ['val']
         elif version == 'test':
-            get_list = ['test']
+            self.get_list = ['test']
         else:
             raise Exception("train/val/test ???\n")
 
@@ -103,16 +103,27 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/pzh/data/jssi/aoi'
             self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize'
             self.numcls = 2
-        elif args.dataset == 'jssi_aoi_resize_center':
+        elif args.dataset == 'jssi-Bumpping_aoi':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
-            self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize_center'
-            self.numcls = 2
-        elif args.dataset == 'jssi_aoi_multi':
+            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi']
+            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi_val']
+
+            self.anno_root = './datasets/jssi-Bumpping_aoi'
+            self.multi_classes = {'Bad': "0", 'Good': "1"}
+            self.numcls = len(self.multi_classes)
+
+            # online setting
+            self.online_model = r'D:\Solution\code\automatic_defect_classification_server\service\weights\jssi-bumpping_aoi\dcl_2_aoi.pth'
+        elif args.dataset == 'jssi-Bumpping_aoi_multi':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/aoi_multi'
-            self.anno_root = './datasets/jssi_aoi/jssi_aoi_multi'
-            self.numcls = 41
+            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi_multi']
+            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi_multi_val']
+
+            self.anno_root = './datasets/jssi-Bumpping_aoi_multi'
+            self.multi_classes = {'Bad': "0", 'Good': "1"}
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\automatic_defect_classification_server\service\weights\jssi-bumpping_aoi\dcl_multi_aoi.pth'
 
         # ===================jssi photo 终检===================
         elif args.dataset == 'jssi_photo_center':
@@ -125,16 +136,27 @@ class LoadConfig(object):
             self.rawdata_root = '/data3/pzh/data/jssi/photo'
             self.anno_root = './datasets/jssi_photo/jssi_photo_resize'
             self.numcls = 2
-        elif args.dataset == 'jssi_photo_center_resize':
+        elif args.dataset == 'jssi-Bumpping_photo':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo/jssi_photo_center_resize'
-            self.numcls = 2
-        elif args.dataset == 'jssi_photo_multi':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo_multi'
-            self.anno_root = './datasets/jssi_photo/jssi_photo_multi'
-            self.numcls = 43
+            # self.rawdata_root = '/data3/pzh/data/jssi/photo'
+            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo']
+            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo_val']
+
+            self.anno_root = './datasets/jssi-Bumpping_photo'
+            self.multi_classes = {'Bad': "0", 'Good': "1"}
+            self.numcls = len(self.multi_classes)
+
+            # online setting
+            self.online_model = r'D:\Solution\code\automatic_defect_classification_server\service\weights\jssi-bumpping_photo\dcl_2_photo.pth'
+        elif args.dataset == 'jssi-Bumpping_photo_multi':
+            self.dataset = args.datasetself.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo_multi']
+            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo_multi_val']
+
+            self.anno_root = './datasets/jssi-Bumpping_photo_multi'
+            self.multi_classes = {'Bad': "0", 'Good': "1"}
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\automatic_defect_classification_server\service\weights\jssi-bumpping_photo\dcl_multi_photo.pth'
         elif args.dataset == 'jssi_dirty_recipe':
             self.dataset = args.dataset
             self.rawdata_root = '/data3/pzh/data/jssi/jssi_dirty_recipe'
@@ -173,31 +195,11 @@ class LoadConfig(object):
             self.anno_root = './datasets/sic_eight'
             self.numcls = 8
         else:
-            raise Exception('dataset not defined ???')
+            raise Exception('dataset {} not defined ???'.format(args.dataset))
 
         # annotation file organized as :
         # path/image_name cls_num\n
 
-        if 'train' in get_list:
-             self.train_anno = pd.read_csv(os.path.join(self.anno_root, 'train.txt'),\
-                                           sep=", ",\
-                                           header=None,\
-                                           names=['ImageName', 'label'],
-                                           engine='python')
-
-        if 'val' in get_list:
-            self.val_anno = pd.read_csv(os.path.join(self.anno_root, 'val.txt'),\
-                                           sep=", ",\
-                                           header=None,\
-                                           names=['ImageName', 'label'],
-                                           engine='python')
-
-        if 'test' in get_list:
-            self.test_anno = pd.read_csv(os.path.join(self.anno_root, 'test.txt'),\
-                                           sep=", ",\
-                                           header=None,\
-                                           names=['ImageName', 'label'],
-                                           engine='python')
 
         self.swap_num = args.swap_num
 
@@ -221,3 +223,25 @@ class LoadConfig(object):
         self.log_folder = './logs'
         if not os.path.exists(self.log_folder):
             os.mkdir(self.log_folder)
+
+    def load_txt(self):
+        if 'train' in self.get_list:
+             self.train_anno = pd.read_csv(os.path.join(self.anno_root, 'train.txt'),\
+                                           sep=", ",\
+                                           header=None,\
+                                           names=['ImageName', 'label'],
+                                           engine='python')
+
+        if 'val' in self.get_list:
+            self.val_anno = pd.read_csv(os.path.join(self.anno_root, 'val.txt'),\
+                                           sep=", ",\
+                                           header=None,\
+                                           names=['ImageName', 'label'],
+                                           engine='python')
+
+        if 'test' in self.get_list:
+            self.test_anno = pd.read_csv(os.path.join(self.anno_root, 'test.txt'),\
+                                           sep=", ",\
+                                           header=None,\
+                                           names=['ImageName', 'label'],
+                                           engine='python')
