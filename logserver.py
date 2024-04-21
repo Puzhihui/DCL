@@ -16,7 +16,7 @@ class LogServer:
         self.hostname = ''
         self.app = app
         self.examid = ''
-        self.configure_logging()
+        # self.configure_logging()
         self.generate_uuid()
         self.pid_monitor_file = ''
 
@@ -68,8 +68,9 @@ class LogServer:
             return True
 
     def generate_local_logfile(self, common_file_name='log.txt'):
-        hostname = self.get_hostname()
-        file_name = hostname + '-' + common_file_name
+        # hostname = self.get_hostname()
+        # file_name = hostname + '-' + common_file_name
+        file_name = common_file_name
         self.local_logfile = os.path.join(self.local_log_path, file_name)
 
     def get_timestamp(self):
@@ -94,7 +95,8 @@ class LogServer:
     # local logging
     def logging(self, log_info, images_path='None'):
         # self.logger.info('[%s] [%s] %s' % (self.uuid, images_path, log_info))
-        self.logger.info('[%s] %s' % (images_path, log_info))
+        # self.logger.info('[%s] %s' % (images_path, log_info))
+        self.logger.info(' %s' % (log_info))
         return 0
 
     def generate_post_message(self, log_lever, msg):
@@ -141,7 +143,7 @@ class LogServer:
         import logging.handlers
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        file_handler = logging.handlers.RotatingFileHandler(self.local_logfile, 'a', 20480000, 7)
+        file_handler = logging.handlers.RotatingFileHandler(self.local_logfile, 'a', 20480000, 7, encoding='utf-8')
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)

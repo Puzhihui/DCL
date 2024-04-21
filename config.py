@@ -78,11 +78,11 @@ def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
 class LoadConfig(object):
     def __init__(self, args, version, only_dataset=False):
         if version == 'train':
-            get_list = ['train', 'val']
+            self.get_list = ['train', 'val']
         elif version == 'val':
-            get_list = ['val']
+            self.get_list = ['val']
         elif version == 'test':
-            get_list = ['test']
+            self.get_list = ['test']
         else:
             raise Exception("train/val/test ???\n")
 
@@ -133,110 +133,79 @@ class LoadConfig(object):
         # 数据格式 D:\Solution\datas + Front_M6\Front_M6_val + recipeName + false\discolor
         elif args.dataset == 'Back_M6':
             self.dataset = args.dataset
-            # 明场
-            self.train_path = r'D:\Solution\datas\Back_M6'
-            self.val_path = r'D:\Solution\datas\Back_M6_val'
-            # 暗场
-            self.train_dark_path = self.train_path.replace("Back_", "BackDark_")
-            self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
-            # 明场+暗场生成的训练txt目录
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M6'
+            self.train_path_list = [r'D:\Solution\datas\Back_M6', r'D:\Solution\datas\BackDark_M6']
+            self.val_path_list = [r'D:\Solution\datas\Back_M6_val', r'D:\Solution\datas\BackDark_M6_val']
+
+            self.anno_root = './datasets/Back_M6'
             self.multi_classes = {'BSDC': "0", 'BSNS': "1", 'SCRATCH': "2", "FALSE": "3", 'BSCS': "4", "BSCSS": "5"}
             self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
         elif args.dataset == 'Front_M6':
             self.dataset = args.dataset
             # 明场
-            self.train_path = r'D:\Solution\datas\Front_M6'
-            self.val_path = r'D:\Solution\datas\Front_M6_val'
-            # 暗场
-            self.train_dark_path = self.train_path.replace("Front_", "FrontDark_")
-            self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
-            # 明场+暗场生成的训练txt目录
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M6'
+            self.train_path_list = [r'D:\Solution\datas\Front_M6', r'D:\Solution\datas\FrontDark_M6']
+            self.val_path_list = [r'D:\Solution\datas\Front_M6_val', r'D:\Solution\datas\FrontDark_M6_val']
+
+            self.anno_root = './datasets/Front_M6'
             self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "FALSE": "3", 'PASD': "4", 'SINR': "5", "PASP": "6", "PANS": "7"}
             self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
 
         # 中芯京城M24
         elif args.dataset == 'Back_M24':
             self.dataset = args.dataset
             # 明场
-            self.train_path = r'D:\Solution\datas\Back_M24'
-            self.val_path = r'D:\Solution\datas\Back_M24_val'
-            # 暗场
-            self.train_dark_path = self.train_path.replace("Back_", "BackDark_")
-            self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
-            # 明场+暗场生成的训练txt目录
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M24'
-            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
+            self.train_path_list = [r'D:\Solution\datas\Back_M24', r'D:\Solution\datas\BackDark_M24']
+            self.val_path_list = [r'D:\Solution\datas\Back_M24_val', r'D:\Solution\datas\BackDark_M24_val']
+
+            self.anno_root = './datasets/Back_M24'
+            self.multi_classes = {'BSDC': "0", 'BSOH': "1", 'SCRATCH': "2", "FALSE": "3"}
             self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
         elif args.dataset == 'Front_M24':
             self.dataset = args.dataset
             # 明场
-            self.train_path = r'D:\Solution\datas\Front_M24'
-            self.val_path = r'D:\Solution\datas\Front_M24_val'
-            # 暗场
-            self.train_dark_path = self.train_path.replace("Front_", "FrontDark_")
-            self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
-            # 明场+暗场生成的训练txt目录
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M24'
-            self.multi_classes = {'discolor': "0", 'other': "1", 'scratch': "2", "false": "3"}
+            self.train_path_list = [r'D:\Solution\datas\Front_M24', r'D:\Solution\datas\FrontDark_M24']
+            self.val_path_list = [r'D:\Solution\datas\Front_M24_val', r'D:\Solution\datas\FrontDark_M24_val']
+
+            self.anno_root = './datasets/Front_M24'
+            self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "FALSE": "3"}
             self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
 
         # 中芯天津M47
         elif args.dataset == 'Back_M47':
             self.dataset = args.dataset
             # 明场
-            self.train_path = r'D:\Solution\datas\Back_M47'
-            self.val_path = r'D:\Solution\datas\Back_M47_val'
-            # 暗场
-            self.train_dark_path = self.train_path.replace("Back_", "BackDark_")
-            self.val_dark_path = self.val_path.replace("Back_", "BackDark_")
-            # 明场+暗场生成的训练txt目录
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Back_M47'
+            self.train_path_list = [r'D:\Solution\datas\Back_M47', r'D:\Solution\datas\BackDark_M47']
+            self.val_path_list = [r'D:\Solution\datas\Back_M47_val', r'D:\Solution\datas\BackDark_M47_val']
+
+            self.anno_root = './datasets/Back_M47'
             self.multi_classes = {'false': "0", 'MissingCorner': "1", 'other': "2", "particle": "3", 'scratch': "4", "discolor": "5"}
             self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
         elif args.dataset == 'Front_M47':
             self.dataset = args.dataset
             # 明场
-            self.train_path = r'D:\Solution\datas\Front_M47'
-            self.val_path = r'D:\Solution\datas\Front_M47_val'
-            # 暗场
-            self.train_dark_path = self.train_path.replace("Front_", "FrontDark_")
-            self.val_dark_path = self.val_path.replace("Front_", "FrontDark_")
-            # 明场+暗场生成的训练txt目录
-            self.anno_root = r'D:\Solution\code\smic\DCL\datasets\Front_M47'
+            self.train_path_list = [r'D:\Solution\datas\Front_M47', r'D:\Solution\datas\FrontDark_M47']
+            self.val_path_list = [r'D:\Solution\datas\Front_M47_val', r'D:\Solution\datas\FrontDark_M47_val']
+
+            self.anno_root = './datasets/Front_M47'
             self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4",
                                   'voiding': "5", "wrinkle": "6", "discolor": "7", "scratch": 8}
             self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
         else:
-            raise Exception('dataset not defined ???')
+            raise Exception('dataset {} not defined ???'.format(args.dataset))
 
         if only_dataset:
             return
-
-        # annotation file organized as :
-        # path/image_name cls_num\n
-
-        if 'train' in get_list:
-             self.train_anno = pd.read_csv(os.path.join(self.anno_root, 'train.txt'),\
-                                           sep=", ",\
-                                           header=None,\
-                                           names=['ImageName', 'label'],
-                                           engine='python')
-
-        if 'val' in get_list:
-            self.val_anno = pd.read_csv(os.path.join(self.anno_root, 'val.txt'),\
-                                           sep=", ",\
-                                           header=None,\
-                                           names=['ImageName', 'label'],
-                                           engine='python')
-
-        if 'test' in get_list:
-            self.test_anno = pd.read_csv(os.path.join(self.anno_root, 'test.txt'),\
-                                           sep=", ",\
-                                           header=None,\
-                                           names=['ImageName', 'label'],
-                                           engine='python')
 
         self.swap_num = args.swap_num
 
@@ -260,19 +229,24 @@ class LoadConfig(object):
         if not os.path.exists(self.log_folder):
             os.mkdir(self.log_folder)
 
+    def load_txt(self):
+        if 'train' in self.get_list:
+             self.train_anno = pd.read_csv(os.path.join(self.anno_root, 'train.txt'),\
+                                           sep=", ",\
+                                           header=None,\
+                                           names=['ImageName', 'label'],
+                                           engine='python')
 
-class smic_back_online():
-    online_model_dir = r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic"
-    online_model_name = "smic_back_m6.pth"
-    best_model_txt = r"D:\Solution\code\smic\DCL\smic_tools\back_best_model_path.txt"
+        if 'val' in self.get_list:
+            self.val_anno = pd.read_csv(os.path.join(self.anno_root, 'val.txt'),\
+                                           sep=", ",\
+                                           header=None,\
+                                           names=['ImageName', 'label'],
+                                           engine='python')
 
-    # train_data_path = r'D:\Solution\datas\smic_om_back_5'
-    # txt_root_path =   r'D:\Solution\code\smic\DCL\datasets\smic_om_back_5'
-
-class smic_front_online():
-    online_model_dir = r"D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic"
-    online_model_name = "smic_front_m6.pth"
-    best_model_txt = r"D:\Solution\code\smic\DCL\smic_tools\front_best_model_path.txt"
-
-    # train_data_path = r'D:\Solution\datas\smic_om_front_by_recipe'
-    # txt_root_path =   r'D:\Solution\code\smic\DCL\datasets\smic_om_front'
+        if 'test' in self.get_list:
+            self.test_anno = pd.read_csv(os.path.join(self.anno_root, 'test.txt'),\
+                                           sep=", ",\
+                                           header=None,\
+                                           names=['ImageName', 'label'],
+                                           engine='python')

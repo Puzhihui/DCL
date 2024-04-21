@@ -1,24 +1,22 @@
 @echo off
 D:
-cd D:\Solution\code\smic\DCL\smic_tools_V2
 @REM CALL D:\Anaconda3\Scripts\activate.bat
 call conda activate torch1.0_cuda8.0
 
-set imagedata=F:\ImageData
 set client=%1
-set mode=%2
+set train_model=%2
 set epoch=%3
 set batch_size=%4
 set resume_checkpoint=%5
-
-echo ==================================================
-
-cd D:\Solution\code\smic\DCL\smic_tools
-python gen_smic_txt.py --mode %mode% --client %client%
+set replace_online_model=%6
+set log_interval=%7
+set num_workers=%8
 
 cd D:\Solution\code\smic\DCL\
-python train_smic.py --mode %mode% --epoch %epoch% --client %client% --tb %batch_size% --vb %batch_size% --resume_checkpoint %resume_checkpoint%
+set dataset_name=%train_model%_%client%
+python train_smic.py --data %dataset_name% --tb %batch_size% --vb %batch_size% ^
+                     --tnw %num_workers% --vnw %num_workers% --backbone resnet50 ^
+                     --epoch %epoch%  --resume_checkpoint %resume_checkpoint% ^
+                     --replace_online_model %replace_online_model% --log_interval %log_interval%
 
-cd D:\Solution\code\smic\DCL\smic_tools
-python replace_online_model.py --mode %mode%
 @REM pause

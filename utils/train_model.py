@@ -11,7 +11,7 @@ from torch import nn
 from torch.autograd import Variable
 #from torchvision.utils import make_grid, save_image
 
-from utils.utils import LossRecord, clip_gradient
+from utils.utils import LossRecord, clip_gradient, replace_model
 from models.focal_loss import FocalLoss
 from utils.eval_model import eval_turn
 from utils.Asoftmax_loss import AngleLoss
@@ -22,8 +22,7 @@ def dt():
     return datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
 
 
-def train(online_model_name,
-          Config,
+def train(Config,
           model,
           epoch_num,
           start_epoch,
@@ -38,6 +37,7 @@ def train(online_model_name,
           ):
     # savepoint: save without evalution
     # checkpoint: save with evaluation
+    best_model_save_path = os.path.join(save_dir, 'best_model.pth')
 
     step = 0
     eval_train_flag = False
@@ -132,14 +132,15 @@ def train(online_model_name,
             optimizer.step()
             torch.cuda.synchronize()
 
+            print_string = None
             if Config.use_dcl:
-                print_string_1 = 'step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), law_loss.detach().item())
-                print(print_string_1, flush=True)
-                _ = log_server.logging(print_string_1) if log_server else 1
+                print_string = 'step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} + {:6.4f} + {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item(), swap_loss.detach().item(), law_loss.detach().item())
             if Config.use_backbone:
-                print_string_2 = 'step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item())
-                print(print_string_2, flush=True)
-                _ = log_server.logging(print_string_2) if log_server else 1
+                print_string = 'step: {:-8d} / {:d} loss=ce_loss+swap_loss+law_loss: {:6.4f} = {:6.4f} '.format(step, train_epoch_step, loss.detach().item(), ce_loss.detach().item())
+            if step % Config.log_interval == 0:
+                print(print_string, flush=True)
+                _ = log_server.logging(print_string) if log_server else 1
+
             rec_loss.append(loss.detach().item())
 
             train_loss_recorder.update(loss.detach().item())
@@ -169,12 +170,11 @@ def train(online_model_name,
                     val_best_epoch = epoch
                     best_weight_save_path = os.path.join(save_dir, 'best_weights_%d_%d_%.4f.pth' % (val_best_epoch, batch_cnt, val_best_acc))
                     torch.save(model.state_dict(), best_weight_save_path)
-                    best_model_save_path = os.path.join(save_dir, online_model_name)
                     torch.save(model.state_dict(), best_model_save_path)
                     print_string_4 = "save best weight to {} and {}".format(best_weight_save_path, best_model_save_path)
                     print(print_string_4)
                     _ = log_server.logging(print_string_4) if log_server else 1
-                print_string_5 = 'saved model to {}, best_epoch:{}, best_acc:{}'.format(save_path, val_best_epoch, val_best_acc)
+                print_string_5 = 'epoch {}: saved model to {}, best_epoch:{}, best_acc:{}'.format(epoch, save_path, val_best_epoch, val_best_acc)
                 print(print_string_5, flush=True)
                 _ = log_server.logging(print_string_5) if log_server else 1
                 torch.cuda.empty_cache()
@@ -192,8 +192,11 @@ def train(online_model_name,
                 torch.save(model.state_dict(), save_path)
                 torch.cuda.empty_cache()
 
-
     log_file.close()
 
-
+    if Config.replace_online_model and os.path.exists(best_model_save_path):
+        replace_model(best_model_save_path, Config.online_model, backup=True, log_server=log_server)
+    else:
+        log_server.logging("训练完成，但未替换新模型至ADC服务，新模型路径为 {}".format(best_model_save_path))
+    log_server.logging("训练已结束！！！")
 

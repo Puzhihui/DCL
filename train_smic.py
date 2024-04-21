@@ -18,11 +18,13 @@ import torch.backends.cudnn as cudnn
 from transforms import transforms
 from utils.train_model import train
 from models.LoadModel import MainModel
-from config import LoadConfig, load_data_transformers, smic_front_online, smic_back_online
+from config import LoadConfig, load_data_transformers
 from utils.dataset_DCL import collate_fn4train, collate_fn4val, collate_fn4test, collate_fn4backbone, dataset
 from logserver import LogServer
+from utils.gen_train_txt import generate_txt
 
 import pdb
+import time
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 # os.environ['CUDA_VISIBLE_DEVICES'] = '2,3'
@@ -37,54 +39,31 @@ def get_str_datetime():
 # parameters setting
 def parse_args():
     parser = argparse.ArgumentParser(description='dcl parameters')
-    parser.add_argument('--mode', default='Back', type=str)
-    parser.add_argument('--client', default='M47', type=str)
-    parser.add_argument('--data', dest='dataset',
-                        default='smic_om_3', type=str)
-    parser.add_argument('--save', dest='resume',
-                        default=None, type=str)
-    parser.add_argument('--resume_checkpoint', default=False, type=bool)
-    parser.add_argument('--save_dir', dest='save_dir',
-                        default=r'D:\Solution\code\smic\DCL\net_model', type=str)
-    parser.add_argument('--backbone', dest='backbone',
-                        default='resnet50', type=str)
-    parser.add_argument('--auto_resume', dest='auto_resume',
-                        action='store_true')
-    parser.add_argument('--epoch', dest='epoch',
-                        default=50, type=int)
-    parser.add_argument('--tb', dest='train_batch',
-                        default=16, type=int)
-    parser.add_argument('--vb', dest='val_batch',
-                        default=16, type=int)
-    parser.add_argument('--sp', dest='save_point',
-                        default=5000, type=int)
-    parser.add_argument('--cp', dest='check_point',
-                        default=5000, type=int)
-    parser.add_argument('--lr', dest='base_lr',
-                        default=0.0008, type=float)
-    parser.add_argument('--lr_step', dest='decay_step',
-                        default=20, type=int)
-    parser.add_argument('--cls_lr_ratio', dest='cls_lr_ratio',
-                        default=10.0, type=float)
-    parser.add_argument('--start_epoch', dest='start_epoch',
-                        default=0,  type=int)
-    parser.add_argument('--tnw', dest='train_num_workers',
-                        default=4, type=int)
-    parser.add_argument('--vnw', dest='val_num_workers',
-                        default=4, type=int)
-    parser.add_argument('--detail', dest='discribe',
-                        default='train', type=str)
-    parser.add_argument('--size', dest='resize_resolution',
-                        default=512, type=int)
-    parser.add_argument('--crop', dest='crop_resolution',
-                        default=352, type=int)
-    parser.add_argument('--cls_2', dest='cls_2',
-                        action='store_true')
-    parser.add_argument('--cls_mul', dest='cls_mul',
-                        default=True, action='store_true')
-    parser.add_argument('--swap_num', default=[5, 5],
-                    nargs=2, metavar=('swap1', 'swap2'),
-                    type=int, help='specify a range')
+    parser.add_argument('--data', dest='dataset', default='smic_om_3', type=str)
+    parser.add_argument('--save', dest='resume', default=None, type=str)
+    parser.add_argument('--resume_checkpoint', default='False', type=str)
+    parser.add_argument('--replace_online_model', default='False', type=str)
+    parser.add_argument('--save_dir', dest='save_dir', default=r'D:\Solution\code\smic\DCL\net_model', type=str)
+    parser.add_argument('--backbone', dest='backbone', default='resnet50', type=str)
+    parser.add_argument('--auto_resume', dest='auto_resume', action='store_true')
+    parser.add_argument('--epoch', dest='epoch', default=50, type=int)
+    parser.add_argument('--log_interval', default=1, type=int)
+    parser.add_argument('--tb', dest='train_batch', default=16, type=int)
+    parser.add_argument('--vb', dest='val_batch', default=16, type=int)
+    parser.add_argument('--sp', dest='save_point', default=5000, type=int)
+    parser.add_argument('--cp', dest='check_point', default=5000, type=int)
+    parser.add_argument('--lr', dest='base_lr', default=0.0008, type=float)
+    parser.add_argument('--lr_step', dest='decay_step', default=20, type=int)
+    parser.add_argument('--cls_lr_ratio', dest='cls_lr_ratio', default=10.0, type=float)
+    parser.add_argument('--start_epoch', dest='start_epoch', default=0,  type=int)
+    parser.add_argument('--tnw', dest='train_num_workers', default=4, type=int)
+    parser.add_argument('--vnw', dest='val_num_workers', default=4, type=int)
+    parser.add_argument('--detail', dest='discribe', default='train', type=str)
+    parser.add_argument('--size', dest='resize_resolution', default=512, type=int)
+    parser.add_argument('--crop', dest='crop_resolution', default=352, type=int)
+    parser.add_argument('--cls_2', dest='cls_2', action='store_true')
+    parser.add_argument('--cls_mul', dest='cls_mul', default=True, action='store_true')
+    parser.add_argument('--swap_num', default=[5, 5], nargs=2, metavar=('swap1', 'swap2'), type=int, help='specify a range')
     args = parser.parse_args()
     return args
 
@@ -99,25 +78,14 @@ def auto_load_resume(load_dir):
     return os.path.join(load_dir, choosed, choosed_w)
 
 
-args = parse_args()
-mode = args.mode
-client = args.client
-args.dataset = "{}_{}".format(mode, client)
-if mode == "Back":
-    cfg_mode = smic_back_online()
-elif mode == "Front":
-    cfg_mode = smic_front_online()
-else:
-    raise "Mode error!!!"
 if __name__ == '__main__':
     # ========================================================日志模块========================================================
-    log_path = r"D:\Solution\log\train_model" if platform.system().lower() == 'windows' else './logs'
+    log_path = r'D:\Solution\code\maintain_tool\log\Train' if platform.system() == "Windows" else "./log"
     os.makedirs(log_path, exist_ok=True)
-    log_server = LogServer(app='adc-dcl-train', log_path=log_path)
-    filename = get_str_datetime()
-    log_server.re_configure_logging('adc-dcl-train' + str(filename) + "_log.txt")
-    print("logfile is: ", str(filename) + "_log.txt")
-    log_server.logging("logfile is %s" % (str(filename) + "_log.txt"))
+    log_server = LogServer(app='smic-train', log_path=log_path)
+    filename = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    log_server.re_configure_logging(filename + ".txt")
+    print("logfile is: ", filename + ".txt")
     print("**********load log config file success*******************")
     # ========================================================日志模块========================================================
 
@@ -126,13 +94,22 @@ if __name__ == '__main__':
     torch.set_num_threads(set_torch_threads)
     log_server.logging("set_torch_threads: {}, now torch num threads:{}".format(set_torch_threads, torch.get_num_threads()))
 
+    args = parse_args()
+    args.replace_online_model = args.replace_online_model.lower() == 'true'
+    args.resume_checkpoint = args.resume_checkpoint.lower() == 'true'
     print(args, flush=True)
     _ = log_server.logging("{}".format(args)) if log_server else 1
     Config = LoadConfig(args, 'train')
+    # 生成train_txt 和 val_txt
+    generate_txt(Config, log_server)
+    Config.load_txt()
+
     Config.save_dir = args.save_dir
     os.makedirs(Config.save_dir, exist_ok=True)
     Config.cls_2 = args.cls_2
     Config.cls_2xmul = args.cls_mul
+    Config.replace_online_model = args.replace_online_model
+    Config.log_interval = args.log_interval
     assert Config.cls_2 ^ Config.cls_2xmul
 
     transformers = load_data_transformers(args.resize_resolution, args.crop_resolution, args.swap_num)
@@ -209,10 +186,16 @@ if __name__ == '__main__':
     model = MainModel(Config)
 
     # load model
-    if args.resume_checkpoint and os.path.exists(args.resume):
-        args.resume = os.path.join(cfg_mode.online_model_dir, cfg_mode.online_model_name)
+    if args.resume_checkpoint:
+        if args.resume and os.path.exists(args.resume):
+            args.resume = args.resume
+        elif Config.online_model and os.path.exists(Config.online_model):
+            args.resume = Config.online_model
+        else:
+            args.resume = None
     else:
         args.resume = None
+    log_server.logging("resume from: {}".format(args.resume))
 
     if (args.resume is None) and (not args.auto_resume):
         print('train from imagenet pretrained models ...', flush=True)
@@ -275,8 +258,7 @@ if __name__ == '__main__':
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=0.1)
 
     # train entry
-    train(cfg_mode.online_model_name,
-          Config,
+    train(Config,
           model,
           epoch_num=args.epoch,
           start_epoch=args.start_epoch,
@@ -288,7 +270,3 @@ if __name__ == '__main__':
           savepoint=args.save_point,
           checkpoint=args.check_point,
           log_server=log_server)
-
-    f = open(cfg_mode.best_model_txt, "w", encoding="utf-8")
-    f.write(save_dir)
-    f.close()
