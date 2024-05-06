@@ -14,6 +14,10 @@ from torchvision import datasets, models
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
+from flask import Flask, jsonify, request
+import threading
+import psutil
+import portalocker
 
 from transforms import transforms
 from utils.train_model import train
@@ -78,7 +82,41 @@ def auto_load_resume(load_dir):
     return os.path.join(load_dir, choosed, choosed_w)
 
 
+app = Flask(__name__)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.WARNING)
+
+
+@app.route('/monitor', methods=["GET", "POST"])
+def monitor():
+    pid = os.getpid()
+    result = {"code": 0, "message": "success", "data": pid}
+    return jsonify(result)
+
+
+def kill_process(pid):
+    parent = psutil.Process(pid)
+    children = parent.children(recursive=True)
+    for child in children:
+        child.kill()
+    parent.kill()
+
+
+def run_flask_app():
+    lockfile = "flask.lock"
+    # 尝试获取文件锁
+    try:
+        with portalocker.Lock(lockfile, flags=portalocker.LOCK_EX | portalocker.LOCK_NB):
+            app.run(host='0.0.0.0', port=8416, debug=False, threaded=True)
+    except portalocker.LockException:
+        print("已在另一个程序开启训练，本程序已退出.....")
+        kill_process(os.getpid())
+    # os.remove(lockfile)
+
+
 if __name__ == '__main__':
+    flask_thread = threading.Thread(target=run_flask_app)
+    flask_thread.start()
     # ========================================================日志模块========================================================
     log_path = r'D:\Solution\code\maintain_tool\log\Train' if platform.system() == "Windows" else "./log"
     os.makedirs(log_path, exist_ok=True)
