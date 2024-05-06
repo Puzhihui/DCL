@@ -137,7 +137,7 @@ class LoadConfig(object):
             self.val_path_list = [r'D:\Solution\datas\Back_M6_val', r'D:\Solution\datas\BackDark_M6_val']
 
             self.anno_root = './datasets/Back_M6'
-            self.multi_classes = {'BSDC': "0", 'BSNS': "1", 'SCRATCH': "2", "FALSE": "3", 'BSCS': "4", "BSCSS": "5"}
+            self.multi_classes = {'BSDC': "0", 'BSOH': "1", 'SCRATCH': "2", "FALSE": "3", 'BSCS': "4", "BSCSS": "5", "BSPS": "6"}
             self.numcls = len(self.multi_classes)
             # online setting
             self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
