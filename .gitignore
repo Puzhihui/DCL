@@ -1,3 +1,4 @@
+flask.lock
 .idea/
 HTMLTable/__pycache__/ service/__pycache__/ DCL/__pycache__/ EfficientNet/__pycache__/ 
 */__pycache__/
