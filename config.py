@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import torch
+import json
 
 from transforms import transforms
 # from utils.autoaugment import ImageNetPolicy
@@ -9,6 +9,15 @@ from transforms import transforms
 pretrained_model = {'resnet50' : './models/pretrained/resnet50-19c8e357.pth',
                     "se_resnext101_32x4d": "./models/pretrained/se_resnext101_32x4d-3b2fe3d8.pth"}
 customize_model = ['efficientnet-b4']
+project_path = r'D:\Solution\code\smic\automatic_defect_classification_server'
+
+
+def load_category(category_json, dataset_name):
+    with open(category_json, 'r') as file:
+        category_dict = json.load(file)
+        print(category_dict[dataset_name])
+    return category_dict[dataset_name]
+
 
 # transforms dict
 def load_data_transformers(resize_reso=512, crop_reso=448, swap_num=[7, 7]):
@@ -92,117 +101,8 @@ class LoadConfig(object):
 
         # put image data in $PATH/data
         # put annotation txt file in $PATH/anno
-
-        if args.dataset == 'jssi_aoi':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
-            self.anno_root = './datasets/jssi_aoi'
-            self.numcls = 2
-        elif args.dataset == 'jssi_photo_center':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo_center'
-            self.numcls = 2
-        elif args.dataset == 'jssi_photo_resize':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo_resize'
-            self.numcls = 2
-        elif args.dataset == 'jssi_photo_center_resize':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo_center_resize'
-            self.numcls = 2
-        elif args.dataset == 'ht_less500_center_resize':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data4/exp_data/'
-            self.anno_root = './datasets/ht_less500_center_resize'
-            self.numcls = 2
-        elif args.dataset == 'ht_more500_center_resize':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data4/exp_data/'
-            self.anno_root = './datasets/ht_more500_center_resize'
-            self.numcls = 2
-        elif args.dataset == 'smic_om_back':
-            self.dataset = args.dataset
-            self.rawdata_root = r'D:\Solution\datas\smic_om_back' # /data3/pzh/data/smic/smic_om_3
-            self.anno_root = './datasets/smic_om_back'
-            self.numcls = 4
-
-        # 中芯北方M6
-        # 数据格式 D:\Solution\datas + Front_M6\Front_M6_val + recipeName + false\discolor
-        elif args.dataset == 'Back_M6':
-            self.dataset = args.dataset
-            self.train_path_list = [r'D:\Solution\datas\Back_M6', r'D:\Solution\datas\BackDark_M6']
-            self.val_path_list = [r'D:\Solution\datas\Back_M6_val', r'D:\Solution\datas\BackDark_M6_val']
-
-            self.anno_root = './datasets/Back_M6'
-            self.multi_classes = {'BSDC': "0", 'BSOH': "1", 'SCRATCH': "2", "FALSE": "3", 'BSCS': "4", "BSCSS": "5", "BSPS": "6"}
-            self.numcls = len(self.multi_classes)
-            # online setting
-            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
-        elif args.dataset == 'Front_M6':
-            self.dataset = args.dataset
-            # 明场
-            self.train_path_list = [r'D:\Solution\datas\Front_M6', r'D:\Solution\datas\FrontDark_M6']
-            self.val_path_list = [r'D:\Solution\datas\Front_M6_val', r'D:\Solution\datas\FrontDark_M6_val']
-
-            self.anno_root = './datasets/Front_M6'
-            self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "FALSE": "3", 'PASD': "4", 'SINR': "5", "PASP": "6", "PANS": "7"}
-            self.numcls = len(self.multi_classes)
-            # online setting
-            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
-
-        # 中芯京城M24
-        elif args.dataset == 'Back_M24':
-            self.dataset = args.dataset
-            # 明场
-            self.train_path_list = [r'D:\Solution\datas\Back_M24', r'D:\Solution\datas\BackDark_M24']
-            self.val_path_list = [r'D:\Solution\datas\Back_M24_val', r'D:\Solution\datas\BackDark_M24_val']
-
-            self.anno_root = './datasets/Back_M24'
-            self.multi_classes = {'BSDC': "0", 'BSOH': "1", 'SCRATCH': "2", "FALSE": "3"}
-            self.numcls = len(self.multi_classes)
-            # online setting
-            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
-        elif args.dataset == 'Front_M24':
-            self.dataset = args.dataset
-            # 明场
-            self.train_path_list = [r'D:\Solution\datas\Front_M24', r'D:\Solution\datas\FrontDark_M24']
-            self.val_path_list = [r'D:\Solution\datas\Front_M24_val', r'D:\Solution\datas\FrontDark_M24_val']
-
-            self.anno_root = './datasets/Front_M24'
-            self.multi_classes = {'PADC': "0", 'PAOH': "1", 'PASC': "2", "FALSE": "3"}
-            self.numcls = len(self.multi_classes)
-            # online setting
-            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
-
-        # 中芯天津M47
-        elif args.dataset == 'Back_M47':
-            self.dataset = args.dataset
-            # 明场
-            self.train_path_list = [r'D:\Solution\datas\Back_M47', r'D:\Solution\datas\BackDark_M47']
-            self.val_path_list = [r'D:\Solution\datas\Back_M47_val', r'D:\Solution\datas\BackDark_M47_val']
-
-            self.anno_root = './datasets/Back_M47'
-            self.multi_classes = {'false': "0", 'MissingCorner': "1", 'other': "2", "particle": "3", 'scratch': "4", "discolor": "5"}
-            self.numcls = len(self.multi_classes)
-            # online setting
-            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
-        elif args.dataset == 'Front_M47':
-            self.dataset = args.dataset
-            # 明场
-            self.train_path_list = [r'D:\Solution\datas\Front_M47', r'D:\Solution\datas\FrontDark_M47']
-            self.val_path_list = [r'D:\Solution\datas\Front_M47_val', r'D:\Solution\datas\FrontDark_M47_val']
-
-            self.anno_root = './datasets/Front_M47'
-            self.multi_classes = {'false': "0", 'bubble': "1", 'burr': "2", "other": "3", 'particle': "4",
-                                  'voiding': "5", "wrinkle": "6", "discolor": "7", "scratch": 8}
-            self.numcls = len(self.multi_classes)
-            # online setting
-            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
-        else:
-            raise Exception('dataset {} not defined ???'.format(args.dataset))
+        self.category_json = os.path.join(project_path, 'service', 'weights', "category.json")
+        self.reload_category(args)
 
         if only_dataset:
             return
@@ -250,3 +150,77 @@ class LoadConfig(object):
                                            header=None,\
                                            names=['ImageName', 'label'],
                                            engine='python')
+    def reload_category(self, args):
+        # 中芯北方M6
+        # 数据格式 D:\Solution\datas + Front_M6\Front_M6_val + recipeName + false\discolor
+        if args.dataset == 'Back_M6':
+            self.dataset = args.dataset
+            self.train_path_list = [r'D:\Solution\datas\Back_M6', r'D:\Solution\datas\BackDark_M6']
+            self.val_path_list = [r'D:\Solution\datas\Back_M6_val', r'D:\Solution\datas\BackDark_M6_val']
+
+            self.anno_root = './datasets/Back_M6'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
+        elif args.dataset == 'Front_M6':
+            self.dataset = args.dataset
+            # 明场
+            self.train_path_list = [r'D:\Solution\datas\Front_M6', r'D:\Solution\datas\FrontDark_M6']
+            self.val_path_list = [r'D:\Solution\datas\Front_M6_val', r'D:\Solution\datas\FrontDark_M6_val']
+
+            self.anno_root = './datasets/Front_M6'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
+
+        # 中芯京城M24
+        elif args.dataset == 'Back_M24':
+            self.dataset = args.dataset
+            # 明场
+            self.train_path_list = [r'D:\Solution\datas\Back_M24', r'D:\Solution\datas\BackDark_M24']
+            self.val_path_list = [r'D:\Solution\datas\Back_M24_val', r'D:\Solution\datas\BackDark_M24_val']
+
+            self.anno_root = './datasets/Back_M24'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
+        elif args.dataset == 'Front_M24':
+            self.dataset = args.dataset
+            # 明场
+            self.train_path_list = [r'D:\Solution\datas\Front_M24', r'D:\Solution\datas\FrontDark_M24']
+            self.val_path_list = [r'D:\Solution\datas\Front_M24_val', r'D:\Solution\datas\FrontDark_M24_val']
+
+            self.anno_root = './datasets/Front_M24'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
+
+        # 中芯天津M47
+        elif args.dataset == 'Back_M47':
+            self.dataset = args.dataset
+            # 明场
+            self.train_path_list = [r'D:\Solution\datas\Back_M47', r'D:\Solution\datas\BackDark_M47']
+            self.val_path_list = [r'D:\Solution\datas\Back_M47_val', r'D:\Solution\datas\BackDark_M47_val']
+
+            self.anno_root = './datasets/Back_M47'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\back_model.pth'
+        elif args.dataset == 'Front_M47':
+            self.dataset = args.dataset
+            # 明场
+            self.train_path_list = [r'D:\Solution\datas\Front_M47', r'D:\Solution\datas\FrontDark_M47']
+            self.val_path_list = [r'D:\Solution\datas\Front_M47_val', r'D:\Solution\datas\FrontDark_M47_val']
+
+            self.anno_root = './datasets/Front_M47'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
+        else:
+            raise Exception('dataset {} not defined ???'.format(args.dataset))
