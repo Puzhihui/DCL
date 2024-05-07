@@ -245,8 +245,8 @@ if __name__ == '__main__':
         model.load_state_dict(model_dict)
 
     print('Set cache dir', flush=True)
-    time = datetime.datetime.now()
-    filename = '%s_%d%d%d_%s'%(args.discribe, time.month, time.day, time.hour, Config.dataset)
+    now_time = datetime.datetime.now()
+    filename = '%s_%d%d%d_%s'%(args.discribe, now_time.month, now_time.day, now_time.hour, Config.dataset)
     save_dir = os.path.join(Config.save_dir, filename)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -282,17 +282,22 @@ if __name__ == '__main__':
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=0.1)
 
     # train entry
-    train(Config,
-          model,
-          epoch_num=args.epoch,
-          start_epoch=args.start_epoch,
-          optimizer=optimizer,
-          exp_lr_scheduler=exp_lr_scheduler,
-          data_loader=dataloader,
-          save_dir=save_dir,
-          data_size=args.crop_resolution,
-          savepoint=args.save_point,
-          checkpoint=args.check_point,
-          log_server=log_server)
+    try:
+        train(Config,
+              model,
+              epoch_num=args.epoch,
+              start_epoch=args.start_epoch,
+              optimizer=optimizer,
+              exp_lr_scheduler=exp_lr_scheduler,
+              data_loader=dataloader,
+              save_dir=save_dir,
+              data_size=args.crop_resolution,
+              savepoint=args.save_point,
+              checkpoint=args.check_point,
+              log_server=log_server)
+    except RuntimeError as e:
+        log_server.logging(e)
+    time.sleep(5)
+    kill_process(os.getpid())
 
 
