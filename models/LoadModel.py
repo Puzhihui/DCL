@@ -4,6 +4,7 @@ import torch
 from torchvision import models, transforms, datasets
 import torch.nn.functional as F
 import pretrainedmodels
+from transformers import BertTokenizer, BertModel
 
 from config import pretrained_model, customize_model
 
@@ -40,6 +41,7 @@ class MainModel(nn.Module):
         super(MainModel, self).__init__()
         self.use_dcl = config.use_dcl
         self.use_sagan = config.use_sagan
+        self.use_language = config.use_language
         self.num_classes = config.numcls
         self.backbone_arch = config.backbone
         self.use_Asoftmax = config.use_Asoftmax
@@ -127,7 +129,15 @@ class MainModel(nn.Module):
             self.attn1 = Self_Attn(256, 'relu')
             self.attn2 = Self_Attn(512, 'relu')
 
-    def forward(self, x, last_cont=None):
+        if self.use_language:
+            self.bert_model = BertModel.from_pretrained('/data1/pzh/project/local/hugging_face/bert-base-uncased')
+            self.fuse_linear = nn.Linear(linear_size+768, linear_size, bias=False)
+
+    def forward(self, x, input_ids=None, attention_mask=None, last_cont=None):
+        if self.use_language:
+            text_outputs = self.bert_model(input_ids=input_ids, attention_mask=attention_mask)
+            text_features = text_outputs.last_hidden_state.mean(dim=1)  # 取最后一个隐藏层的平均值作为特征表示 (batch, 768)
+            # text_features = text_outputs.last_hidden_state[0]  # 获取 [CLS] token 的嵌入
         x = self.model(x)  # 8,1792,14,14
         x_sagan = x
         if self.use_dcl:
@@ -138,6 +148,10 @@ class MainModel(nn.Module):
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
+        if self.use_language:
+            combined_features = torch.cat((x, text_features), dim=1)
+            fused_features = self.fuse_linear(combined_features)
+            x = fused_features
         out = []
         out.append(self.classifier(x))
 

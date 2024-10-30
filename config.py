@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import torch
+import platform
 
 # from transforms import transforms
 from cvtorchvision import cvtransforms
@@ -92,21 +93,21 @@ class LoadConfig(object):
         # put image data in $PATH/data
         # put annotation txt file in $PATH/anno
 
-        # ===================jssi aoi 过程检===================
-        if args.dataset == 'jssi_aoi_center':
+        # ===================jssi aoi 终检===================
+        # if args.dataset == 'jssi_aoi_center':
+        #     self.dataset = args.dataset
+        #     self.rawdata_root = '/data3/pzh/data/jssi/aoi'
+        #     self.anno_root = './datasets/jssi_aoi/jssi_aoi_center'
+        #     self.numcls = 2
+        # elif args.dataset == 'jssi_aoi_resize':
+        #     self.dataset = args.dataset
+        #     self.rawdata_root = '/data3/pzh/data/jssi/aoi'
+        #     self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize'
+        #     self.numcls = 2
+        if args.dataset == 'jssi-Bumpping_aoi':
             self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
-            self.anno_root = './datasets/jssi_aoi/jssi_aoi_center'
-            self.numcls = 2
-        elif args.dataset == 'jssi_aoi_resize':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/aoi'
-            self.anno_root = './datasets/jssi_aoi/jssi_aoi_resize'
-            self.numcls = 2
-        elif args.dataset == 'jssi-Bumpping_aoi':
-            self.dataset = args.dataset
-            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi']
-            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi_val']
+            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi'] if platform.system() == 'Windows' else ["/data1/pzh/data/jssi/aoi/train/"]
+            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_aoi_val'] if platform.system() == 'Windows' else ["/data1/pzh/data/jssi/aoi/val/"]
 
             self.anno_root = './datasets/jssi-Bumpping_aoi'
             self.multi_classes = {'Bad': "0", 'Good': "1"}
@@ -125,22 +126,22 @@ class LoadConfig(object):
             # online setting
             self.online_model = r'D:\Solution\code\automatic_defect_classification_server\service\weights\jssi-bumpping_aoi\dcl_multi_aoi.pth'
 
-        # ===================jssi photo 终检===================
-        elif args.dataset == 'jssi_photo_center':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo/jssi_photo_center'
-            self.numcls = 2
-        elif args.dataset == 'jssi_photo_resize':
-            self.dataset = args.dataset
-            self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.anno_root = './datasets/jssi_photo/jssi_photo_resize'
-            self.numcls = 2
+        # ===================jssi photo 过程检===================
+        # elif args.dataset == 'jssi_photo_center':
+        #     self.dataset = args.dataset
+        #     self.rawdata_root = '/data3/pzh/data/jssi/photo'
+        #     self.anno_root = './datasets/jssi_photo/jssi_photo_center'
+        #     self.numcls = 2
+        # elif args.dataset == 'jssi_photo_resize':
+        #     self.dataset = args.dataset
+        #     self.rawdata_root = '/data3/pzh/data/jssi/photo'
+        #     self.anno_root = './datasets/jssi_photo/jssi_photo_resize'
+        #     self.numcls = 2
         elif args.dataset == 'jssi-Bumpping_photo':
             self.dataset = args.dataset
             # self.rawdata_root = '/data3/pzh/data/jssi/photo'
-            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo']
-            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo_val']
+            self.train_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo'] if platform.system() == 'Windows' else ["/data1/pzh/data/jssi/photo/train/"]
+            self.val_path_list = [r'D:\Solution\datas\jssi-Bumpping_photo_val'] if platform.system() == 'Windows' else ["/data1/pzh/data/jssi/photo/val/"]
 
             self.anno_root = './datasets/jssi-Bumpping_photo'
             self.multi_classes = {'Bad': "0", 'Good': "1"}

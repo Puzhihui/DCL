@@ -17,7 +17,7 @@ import pdb
 def dt():
     return datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
 
-def eval_turn(Config, model, data_loader, val_version, epoch_num, log_file):
+def eval_turn(Config, model, data_loader, val_version, epoch_num, log_file, bert_tokenizer):
 
     model.train(False)
 
@@ -39,9 +39,32 @@ def eval_turn(Config, model, data_loader, val_version, epoch_num, log_file):
     print('evaluating %s ...'%val_version, flush=True)
     with torch.no_grad():
         for batch_cnt_val, data_val in enumerate(data_loader):
+            if Config.use_language:
+                recipe_list = []
+                for img_path in data_val[2]:
+                    # recipe = img_path.split('/')[-3]
+                    # recipe = recipe.split("@")[0]
+                    # recipe = recipe.split("_")[0]
+                    # recipe_list.append(recipe)
+
+                    recipe = img_path.split('/')[-3]
+                    recipe = recipe.split("@")[0]
+                    recipe = recipe.split("_")[0]
+                    customer_name = recipe[3:7]
+                    product_code = recipe[7:11]
+                    layer_name = recipe[11:]
+                    recipe_list.append('Client: {}, Product: {}, Process: {}'.format(customer_name, product_code, layer_name))
+                text_inputs = bert_tokenizer(recipe_list, padding=True, truncation=True, return_tensors='pt')
+                for key in text_inputs.keys():
+                    text_inputs[key] = text_inputs[key].cuda()
+                input_ids = text_inputs['input_ids']
+                attention_mask = text_inputs['attention_mask']
             inputs = Variable(data_val[0].cuda())
             labels = Variable(torch.from_numpy(np.array(data_val[1])).long().cuda())
-            outputs = model(inputs)
+            if Config.use_language:
+                outputs = model(inputs, input_ids, attention_mask)
+            else:
+                outputs = model(inputs)
             loss = 0
 
             ce_loss = get_ce_loss(outputs[0], labels).item()

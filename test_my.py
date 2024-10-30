@@ -29,6 +29,7 @@ import glob
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+from transformers import BertTokenizer
 
 # python test_my.py --data jssi_photo --use_center --use_resize  --test_txt ./test.txt --save ./model.pth
 
@@ -118,7 +119,7 @@ def main():
     model.load_state_dict(model_dict)
     model.cuda()
     # model = nn.DataParallel(model)
-
+    bert_tokenizer = BertTokenizer.from_pretrained('/data1/pzh/project/local/hugging_face/bert-base-uncased')
     model.train(False)
     with torch.no_grad():
         val_corrects1 = 0
@@ -130,11 +131,23 @@ def main():
         row = []
         for batch_cnt_val, data_val in enumerate(dataloader):
             count_bar.update(1)
+            recipe_list = []
+            for img_path in data_val[2]:
+                recipe = img_path.split('/')[-3]
+                recipe = recipe.split("@")[0]
+                recipe = recipe.split("_")[0]
+                recipe_list.append(recipe)
+            text_inputs = bert_tokenizer(recipe_list, padding=True, truncation=True, return_tensors='pt')
+            for key in text_inputs.keys():
+                text_inputs[key] = text_inputs[key].cuda()
+            input_ids = text_inputs['input_ids']
+            attention_mask = text_inputs['attention_mask']
+
             inputs, labels, img_name = data_val
             inputs = Variable(inputs.cuda())
             labels = Variable(torch.from_numpy(np.array(labels)).long().cuda())
 
-            outputs = model(inputs)
+            outputs = model(inputs, input_ids, attention_mask)
             outputs_pred = outputs[0] + outputs[1][:, 0:Config.numcls] + outputs[1][:, Config.numcls:2 * Config.numcls]
             # outputs_pred = outputs[0]
 
@@ -190,17 +203,17 @@ def main():
                                                'label': sub_label}
                     # print(result_gather[sub_name])
 
-        def write_csv(csv_path, rows, headers):
-            if os.path.exists(csv_path):
-                with open(csv_path, 'a+', newline='', encoding='utf-8') as f:
-                    f_csv = csv.writer(f)
-                    f_csv.writerows(rows)
-            else:
-                with open(csv_path, 'w', newline='', encoding='utf-8') as f:
-                    f_csv = csv.writer(f)
-                    f_csv.writerow(headers)
-                    f_csv.writerows(rows)
-        write_csv(os.path.join("./sic_eight", "defect.csv"), row, ['Wafer_ID', 'Recipe_Name','Defect_Type','Defect_Area','Defect_Length','Defect_Width','Defect_ImageName'])
+        # def write_csv(csv_path, rows, headers):
+        #     if os.path.exists(csv_path):
+        #         with open(csv_path, 'a+', newline='', encoding='utf-8') as f:
+        #             f_csv = csv.writer(f)
+        #             f_csv.writerows(rows)
+        #     else:
+        #         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        #             f_csv = csv.writer(f)
+        #             f_csv.writerow(headers)
+        #             f_csv.writerows(rows)
+        # write_csv(os.path.join("./sic_eight", "defect.csv"), row, ['Wafer_ID', 'Recipe_Name','Defect_Type','Defect_Area','Defect_Length','Defect_Width','Defect_ImageName'])
     if args.acc_report:
         torch.save(result_gather, 'result_gather_%s' % resume.split('/')[-1][:-4] + '.pt')
 

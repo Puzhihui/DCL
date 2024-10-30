@@ -13,7 +13,7 @@ from torchvision import datasets, models
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
-from flask import Flask, jsonify, request
+# from flask import Flask, jsonify, request
 import threading
 import psutil
 import portalocker
@@ -31,7 +31,7 @@ import platform
 import pdb
 
 os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-# os.environ['CUDA_VISIBLE_DEVICES'] = '2,3,4'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
 # DCL model：nohup python train_my.py --data jssi-Bumpping_aoi --tb 32 --vb 32 --crop 448 --cls_mul --backbone efficientnet-b4 --epoch 50 --resume_checkpoint False --replace_online_model False --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 # DCL model use sagan：nohup python train_my.py --data jssi_photo --tb 32 --crop 448  --cls_2 --use_sagan --swap_num [7,7] --backbone efficientnet-b4 --epoch 50 --save ./pretrain_model.pth --save_dir ./net_model/photo >nohup.log 2>&1 &
 
@@ -64,6 +64,7 @@ def parse_args():
     parser.add_argument('--cls_mul', dest='cls_mul', action='store_true')
     parser.add_argument('--use_sagan', dest='use_sagan', action='store_true')
     parser.add_argument('--swap_num', default=[7, 7], nargs=2, metavar=('swap1', 'swap2'), type=int, help='specify a range')
+    parser.add_argument('--use_language', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -78,16 +79,16 @@ def auto_load_resume(load_dir):
     return os.path.join(load_dir, choosed, choosed_w)
 
 
-app = Flask(__name__)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.WARNING)
+# app = Flask(__name__)
+# log = logging.getLogger('werkzeug')
+# log.setLevel(logging.WARNING)
 
 
-@app.route('/monitor', methods=["GET", "POST"])
-def monitor():
-    pid = os.getpid()
-    result = {"code": 0, "message": "success", "data": pid}
-    return jsonify(result)
+# @app.route('/monitor', methods=["GET", "POST"])
+# def monitor():
+#     pid = os.getpid()
+#     result = {"code": 0, "message": "success", "data": pid}
+#     return jsonify(result)
 
 
 def kill_process(pid):
@@ -111,8 +112,8 @@ def run_flask_app():
 
 
 if __name__ == '__main__':
-    flask_thread = threading.Thread(target=run_flask_app)
-    flask_thread.start()
+    # flask_thread = threading.Thread(target=run_flask_app)
+    # flask_thread.start()
     # ========================================================日志模块========================================================
     log_path = r'D:\Solution\code\maintain_tool\log\Train' if platform.system() == "Windows" else "./log"
     os.makedirs(log_path, exist_ok=True)
@@ -135,6 +136,7 @@ if __name__ == '__main__':
 
     Config.save_dir = args.save_dir
     Config.use_sagan = args.use_sagan
+    Config.use_language = args.use_language
     os.makedirs(Config.save_dir, exist_ok=True)
     Config.cls_2 = args.cls_2
     Config.cls_2xmul = args.cls_mul
@@ -282,22 +284,22 @@ if __name__ == '__main__':
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=0.1)
 
     # train entry
-    try:
-        train(Config,
-              model,
-              epoch_num=args.epoch,
-              start_epoch=args.start_epoch,
-              optimizer=optimizer,
-              exp_lr_scheduler=exp_lr_scheduler,
-              data_loader=dataloader,
-              save_dir=save_dir,
-              data_size=args.crop_resolution,
-              savepoint=args.save_point,
-              checkpoint=args.check_point,
-              log_server=log_server)
-    except RuntimeError as e:
-        log_server.logging(e)
-    time.sleep(5)
-    kill_process(os.getpid())
+    # try:
+    train(Config,
+          model,
+          epoch_num=args.epoch,
+          start_epoch=args.start_epoch,
+          optimizer=optimizer,
+          exp_lr_scheduler=exp_lr_scheduler,
+          data_loader=dataloader,
+          save_dir=save_dir,
+          data_size=args.crop_resolution,
+          savepoint=args.save_point,
+          checkpoint=args.check_point,
+          log_server=log_server)
+    # except RuntimeError as e:
+    #     log_server.logging(e)
+    # time.sleep(5)
+    # kill_process(os.getpid())
 
 

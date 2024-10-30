@@ -15,7 +15,7 @@ from utils.utils import LossRecord, clip_gradient, replace_model
 from models.focal_loss import FocalLoss
 from utils.eval_model import eval_turn
 from utils.Asoftmax_loss import AngleLoss
-
+from transformers import BertTokenizer
 import pdb
 
 def dt():
@@ -60,6 +60,10 @@ def train(Config,
     get_focal_loss = FocalLoss()
     get_angle_loss = AngleLoss()
 
+    bert_tokenizer = None
+    if Config.use_language:
+        bert_tokenizer = BertTokenizer.from_pretrained('/data1/pzh/project/local/hugging_face/bert-base-uncased')
+
     val_best_acc, val_best_epoch = -1, -1
     for epoch in range(start_epoch,epoch_num-1):
         exp_lr_scheduler.step(epoch)
@@ -94,11 +98,34 @@ def train(Config,
                 swap_law = Variable(torch.from_numpy(np.array(swap_law)).float().cuda())
 
             optimizer.zero_grad()
+            if Config.use_language:
+                recipe_list = []
+                for img_path in img_names:
+                    # recipe = img_path.split('/')[-3]
+                    # recipe = recipe.split("@")[0]
+                    # recipe = recipe.split("_")[0]
+                    # recipe_list.append(recipe)
+                    # recipe_list.append(recipe)
 
+                    recipe = img_path.split('/')[-3]
+                    recipe = recipe.split("@")[0]
+                    recipe = recipe.split("_")[0]
+                    customer_name = recipe[3:7]
+                    product_code = recipe[7:11]
+                    layer_name = recipe[11:]
+                    recipe_list.append('Client: {}, Product: {}, Process: {}'.format(customer_name, product_code, layer_name))
+                    recipe_list.append('Client: {}, Product: {}, Process: {}'.format(customer_name, product_code, layer_name))
+                text_inputs = bert_tokenizer(recipe_list, padding=True, truncation=True, return_tensors='pt')
+                for key in text_inputs.keys():
+                    text_inputs[key] = text_inputs[key].cuda()
+                input_ids = text_inputs['input_ids']
+                attention_mask = text_inputs['attention_mask']
             if inputs.size(0) < 2*train_batch_size:
                 outputs = model(inputs, inputs[0:-1:2])
+            elif Config.use_language:
+                outputs = model(inputs, input_ids, attention_mask, None)
             else:
-                outputs = model(inputs, None)
+                outputs = model(inputs, last_cont=None)
 
             # labels = labels.type(torch.int64)
             if Config.use_focal_loss:
@@ -168,7 +195,7 @@ def train(Config,
                     if abs(trainval_acc1 - trainval_acc3) < 0.01:
                         eval_train_flag = False
 
-                val_acc1, val_acc2, val_acc3 = eval_turn(Config, model, data_loader['val'], 'val', epoch, log_file)
+                val_acc1, val_acc2, val_acc3 = eval_turn(Config, model, data_loader['val'], 'val', epoch, log_file, bert_tokenizer)
 
                 save_path = os.path.join(save_dir, 'weights_%d_%d_%.4f.pth' % (epoch, batch_cnt, val_acc1))
                 torch.cuda.synchronize()
