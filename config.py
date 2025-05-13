@@ -174,6 +174,16 @@ class LoadConfig(object):
             self.numcls = len(self.multi_classes)
             # online setting
             self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\front_model.pth'
+        elif args.dataset == 'Side_M6':
+            self.dataset = args.dataset
+            self.train_path_list = [r'D:\Solution\datas\Side_M6']
+            self.val_path_list = [r'D:\Solution\datas\Side_M6_val']
+
+            self.anno_root = './datasets/Side_M6'
+            self.multi_classes = load_category(self.category_json, args.dataset)
+            self.numcls = len(self.multi_classes)
+            # online setting
+            self.online_model = r'D:\Solution\code\smic\automatic_defect_classification_server\service\weights\smic\side_model.pth'
 
         # 中芯京城M24
         elif args.dataset == 'Back_M24':

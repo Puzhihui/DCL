@@ -134,13 +134,20 @@ def replace_model(new_model, org_model, backup=True, log_server=None):
             now_str = '{}y{:02d}m{:02d}d{:02d}h{:02d}m'.format(now.year, now.month, now.day, now.hour, now.minute)
             backup_model = os.path.join(model_dir, "{}@{}".format(now_str, model_name))
             os.rename(org_model, backup_model)
-            log_server.logging("原模型备份：{} -> {}".format(org_model, backup_model))
+            log_str = "原模型备份：{} -> {}".format(org_model, backup_model)
+            log_server.logging(log_str)
+            print(log_str)
         except:
-            log_server.logging("{}模型备份失败，直接进行模型替换".format(org_model))
+            log_str = "{}模型备份失败，直接进行模型替换".format(org_model)
+            log_server.logging(log_str)
+            print(log_str)
 
     try:
         shutil.copy2(new_model, model_dir)
         os.rename(os.path.join(model_dir, os.path.basename(new_model)), os.path.join(model_dir, model_name))
         log_server.logging("新模型已替换完毕！")
+        print("新模型已替换完毕！")
     except:
-        log_server.logging("{}模型不存在，请手动更新模型".format(new_model))
+        log_str = "{}模型不存在，请手动更新模型".format(new_model)
+        log_server.logging(log_str)
+        print(log_str)

@@ -197,6 +197,9 @@ def train(Config,
     if Config.replace_online_model and os.path.exists(best_model_save_path):
         replace_model(best_model_save_path, Config.online_model, backup=True, log_server=log_server)
     else:
-        log_server.logging("训练完成，但未替换新模型至ADC服务，新模型路径为 {}".format(best_model_save_path))
+        log_str = "训练完成，但未替换新模型至ADC服务，新模型路径为 {}".format(best_model_save_path)
+        log_server.logging(log_str)
+        print(log_str)
     log_server.logging("训练已结束！！！")
+    print("训练已结束！！！")
 
